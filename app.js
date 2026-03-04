@@ -1,7 +1,43 @@
 /* ============================================
    TABLETOP QUEST ACADEMY - APP
+   ES Module with Firebase Firestore sync
    ============================================ */
 
+// ---- Firebase imports (CDN) ----
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, doc, getDoc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+// ---- Firebase config ----
+// REPLACE THIS with your Firebase project config (see SETUP.md)
+const FIREBASE_CONFIG = {
+  apiKey: "",
+  authDomain: "",
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: ""
+};
+
+// ---- Firebase init ----
+let db = null;
+let unsubscribe = null;
+let syncCode = localStorage.getItem('tqa-sync-code') || '';
+let firebaseReady = false;
+
+function initFirebase() {
+  if (!FIREBASE_CONFIG.apiKey) return false;
+  try {
+    const app = initializeApp(FIREBASE_CONFIG);
+    db = getFirestore(app);
+    firebaseReady = true;
+    return true;
+  } catch (e) {
+    console.warn('Firebase init failed:', e);
+    return false;
+  }
+}
+
+// ---- Data constants ----
 const MODULES = [
   { id: '01', dir: '01-unreal-basics', name: 'Unreal Basics', desc: 'Editor layout, viewport navigation, actors, landscapes, packaging builds.', color: 'var(--c1)', phase: 'Phase 1' },
   { id: '02', dir: '02-blueprints', name: 'Blueprints', desc: 'Visual scripting, events, variables, functions, interactive objects.', color: 'var(--c2)', phase: 'Phase 1' },
@@ -45,18 +81,43 @@ let currentModule = null;
 let currentTab = 'lesson';
 let mdCache = {};
 
-// ---- Progress (localStorage) ----
+// ---- Progress (localStorage + Firestore) ----
 function getProgress() {
   try { return JSON.parse(localStorage.getItem('tqa-progress') || '{}'); }
   catch { return {}; }
 }
-function setProgress(data) { localStorage.setItem('tqa-progress', JSON.stringify(data)); }
-function toggleItem(key) {
+
+function setProgressLocal(data) {
+  localStorage.setItem('tqa-progress', JSON.stringify(data));
+}
+
+async function setProgress(data) {
+  setProgressLocal(data);
+  // Sync to Firestore if connected
+  if (firebaseReady && syncCode) {
+    setSyncStatus('syncing');
+    try {
+      await setDoc(doc(db, 'progress', syncCode), {
+        data: data,
+        updatedAt: new Date().toISOString(),
+        device: navigator.userAgent.substring(0, 80)
+      });
+      setSyncStatus('connected');
+    } catch (e) {
+      console.warn('Firestore write failed:', e);
+      setSyncStatus('error');
+    }
+  }
+}
+
+async function toggleItem(key) {
   const p = getProgress();
   p[key] = !p[key];
-  setProgress(p);
+  if (!p[key]) delete p[key]; // clean up false values
+  await setProgress(p);
   updateAllProgress();
 }
+
 function isComplete(key) { return !!getProgress()[key]; }
 
 function countModuleProgress(modId) {
@@ -68,6 +129,7 @@ function countModuleProgress(modId) {
   }
   return { done, total };
 }
+
 function countTotalProgress() {
   const p = getProgress();
   let done = 0, total = MODULES.length * TABS.length;
@@ -93,7 +155,6 @@ function updateAllProgress() {
   if (mobileRing) mobileRing.setAttribute('stroke-dasharray', `${pct}, 100`);
   if (mobilePct) mobilePct.textContent = pct + '%';
 
-  // Nav checks
   for (const m of MODULES) {
     const { done: mDone, total: mTotal } = countModuleProgress(m.id);
     const check = document.getElementById(`check-mod-${m.id}`);
@@ -103,6 +164,117 @@ function updateAllProgress() {
     }
   }
 }
+
+// ---- Sync UI ----
+function setSyncStatus(state) {
+  const el = document.getElementById('sync-status');
+  const btn = document.getElementById('sync-btn');
+  if (!el) return;
+
+  el.classList.remove('connected', 'syncing');
+
+  if (state === 'connected') {
+    el.classList.add('connected');
+    el.textContent = `Synced: ${syncCode}`;
+    btn.textContent = 'Change Code';
+  } else if (state === 'syncing') {
+    el.classList.add('syncing');
+    el.textContent = 'Syncing...';
+  } else if (state === 'error') {
+    el.textContent = 'Sync error';
+    btn.textContent = 'Retry';
+  } else if (state === 'no-firebase') {
+    el.textContent = 'Setup needed';
+    btn.textContent = 'See SETUP.md';
+  } else {
+    el.textContent = 'Offline (local only)';
+    btn.textContent = 'Set Sync Code';
+  }
+}
+
+function startRealtimeSync() {
+  if (unsubscribe) unsubscribe();
+  if (!firebaseReady || !syncCode) return;
+
+  unsubscribe = onSnapshot(doc(db, 'progress', syncCode), (snapshot) => {
+    if (snapshot.exists()) {
+      const remote = snapshot.data().data || {};
+      const local = getProgress();
+      // Merge: take the union of completed items (if either device marked it done, it's done)
+      const merged = { ...remote };
+      for (const key of Object.keys(local)) {
+        if (local[key]) merged[key] = true;
+      }
+      setProgressLocal(merged);
+      updateAllProgress();
+      // Re-render current view if it shows progress
+      if (currentPage === 'home') renderDashboard();
+      else if (currentPage === 'module') renderModule();
+    }
+    setSyncStatus('connected');
+  }, (err) => {
+    console.warn('Realtime sync error:', err);
+    setSyncStatus('error');
+  });
+}
+
+// Exposed to window for onclick handlers
+window.showSyncModal = function() {
+  if (!firebaseReady) {
+    alert('Firebase is not configured yet. See SETUP.md in the repo for the 5-step setup guide.');
+    return;
+  }
+  const modal = document.getElementById('sync-modal');
+  const input = document.getElementById('sync-input');
+  modal.classList.add('open');
+  input.value = syncCode;
+  input.focus();
+  document.getElementById('sync-error').textContent = '';
+};
+
+window.closeSyncModal = function() {
+  document.getElementById('sync-modal').classList.remove('open');
+};
+
+window.connectSync = async function() {
+  const input = document.getElementById('sync-input');
+  const code = input.value.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
+  const errEl = document.getElementById('sync-error');
+
+  if (!code || code.length < 2) {
+    errEl.textContent = 'Enter at least 2 characters (letters, numbers, dashes).';
+    return;
+  }
+
+  syncCode = code;
+  localStorage.setItem('tqa-sync-code', code);
+  closeSyncModal();
+  setSyncStatus('syncing');
+
+  try {
+    // Check if remote data exists
+    const snap = await getDoc(doc(db, 'progress', code));
+    if (snap.exists()) {
+      // Merge remote into local
+      const remote = snap.data().data || {};
+      const local = getProgress();
+      const merged = { ...remote };
+      for (const key of Object.keys(local)) {
+        if (local[key]) merged[key] = true;
+      }
+      await setProgress(merged);
+    } else {
+      // Push local to remote
+      await setProgress(getProgress());
+    }
+    updateAllProgress();
+    if (currentPage === 'home') renderDashboard();
+    startRealtimeSync();
+  } catch (e) {
+    console.error('Sync connect failed:', e);
+    setSyncStatus('error');
+  }
+};
 
 // ---- Markdown loading ----
 async function loadMd(path) {
@@ -123,8 +295,7 @@ function renderMd(text) {
 }
 
 // ---- Navigation ----
-function navigate(page, extra) {
-  // Close sidebar on mobile
+window.navigate = function(page, extra) {
   const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('sidebar-overlay');
   const btn = document.getElementById('menu-btn');
@@ -132,12 +303,10 @@ function navigate(page, extra) {
   overlay.classList.remove('open');
   btn.classList.remove('open');
 
-  // Update active nav
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   const navItem = document.querySelector(`.nav-item[data-page="${page}"]`);
   if (navItem) navItem.classList.add('active');
 
-  // Hide all pages
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
 
   if (page === 'home') {
@@ -168,18 +337,23 @@ function navigate(page, extra) {
     document.getElementById('page-bible').classList.add('active');
   }
 
-  // Scroll to top
   window.scrollTo(0, 0);
-}
+};
 
-function toggleSidebar() {
+window.toggleSidebar = function() {
   const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('sidebar-overlay');
   const btn = document.getElementById('menu-btn');
   sidebar.classList.toggle('open');
   overlay.classList.toggle('open');
   btn.classList.toggle('open');
-}
+};
+
+window.toggleItem = toggleItem;
+window.switchTab = function(tab) {
+  currentTab = tab;
+  renderModule();
+};
 
 // ---- Render: Dashboard ----
 function renderDashboard() {
@@ -208,7 +382,6 @@ function renderDashboard() {
   }
   html += '</div>';
 
-  // Phase timeline
   html += '<div class="phase-timeline"><h2>Development Roadmap</h2>';
   for (let i = 0; i < PHASES.length; i++) {
     const p = PHASES[i];
@@ -237,7 +410,6 @@ async function renderModule() {
   if (!mod) return;
   const el = document.getElementById('page-module');
 
-  // Set accent color as CSS var
   document.documentElement.style.setProperty('--accent', mod.color);
 
   const { done, total } = countModuleProgress(mod.id);
@@ -264,12 +436,11 @@ async function renderModule() {
   html += '</div>';
   html += '<div class="md-content" id="md-area"><div class="loading-spinner"></div></div>';
 
-  // Mark complete button
   const key = `mod-${mod.id}-${currentTab}`;
   const isDone = isComplete(key);
   html += `
     <div style="margin-top:16px;text-align:center;">
-      <button onclick="toggleItem('${key}'); renderModule();"
+      <button onclick="toggleItem('${key}').then(()=>{navigate('mod-${mod.id}','${currentTab}')})"
         style="padding:10px 24px;border-radius:8px;border:2px solid ${mod.color};
         background:${isDone ? mod.color : 'transparent'};
         color:${isDone ? '#fff' : mod.color};font-weight:700;cursor:pointer;
@@ -281,15 +452,9 @@ async function renderModule() {
 
   el.innerHTML = html;
 
-  // Load markdown
   const path = `modules/${mod.dir}/${currentTab}.md`;
   const text = await loadMd(path);
   document.getElementById('md-area').innerHTML = renderMd(text);
-}
-
-function switchTab(tab) {
-  currentTab = tab;
-  renderModule();
 }
 
 // ---- Render: Cheatsheets ----
@@ -370,6 +535,17 @@ async function renderBibleDetail(file) {
 
 // ---- Init ----
 document.addEventListener('DOMContentLoaded', () => {
+  const fbOk = initFirebase();
+
+  if (fbOk && syncCode) {
+    setSyncStatus('syncing');
+    startRealtimeSync();
+  } else if (!fbOk) {
+    setSyncStatus('no-firebase');
+  } else {
+    setSyncStatus('offline');
+  }
+
   updateAllProgress();
   navigate('home');
 });

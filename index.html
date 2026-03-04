@@ -4,10 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tabletop Quest Academy</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <!-- Firebase SDK (modular, from CDN) -->
+  <script type="module" src="app.js"></script>
 </head>
 <body>
   <!-- Mobile header -->
@@ -136,6 +139,28 @@
     </div>
   </nav>
 
+  <!-- Sync banner -->
+  <div id="sync-banner">
+    <div id="sync-inner">
+      <span id="sync-status">Offline</span>
+      <button id="sync-btn" onclick="showSyncModal()">Set Sync Code</button>
+    </div>
+  </div>
+
+  <!-- Sync modal -->
+  <div id="sync-modal" class="modal-overlay" onclick="if(event.target===this)closeSyncModal()">
+    <div class="modal-box">
+      <h2>Cross-Device Sync</h2>
+      <p>Enter a sync code to share progress across devices. Use the same code on your phone and PC.</p>
+      <input type="text" id="sync-input" placeholder="e.g. tristan, quest123, anything..." autocomplete="off" spellcheck="false">
+      <div class="modal-actions">
+        <button class="modal-btn secondary" onclick="closeSyncModal()">Cancel</button>
+        <button class="modal-btn primary" onclick="connectSync()">Connect</button>
+      </div>
+      <p id="sync-error" class="sync-error"></p>
+    </div>
+  </div>
+
   <!-- Main content -->
   <main id="content">
     <!-- Home / Dashboard (default) -->
@@ -148,6 +173,6 @@
     <div id="page-bible" class="page"></div>
   </main>
 
-  <script src="app.js"></script>
+  <!-- app.js is loaded as module in head -->
 </body>
 </html>

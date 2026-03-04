@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f97316"/>
+      <stop offset="33%" stop-color="#ec4899"/>
+      <stop offset="66%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+  </defs>
+  <!-- D20 shape (icosahedron face) -->
+  <polygon points="32,4 58,48 6,48" fill="url(#g)" rx="4"/>
+  <!-- Inner lines -->
+  <line x1="32" y1="4" x2="19" y2="48" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+  <line x1="32" y1="4" x2="45" y2="48" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+  <line x1="6" y1="48" x2="45" y2="48" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+  <line x1="19" y1="48" x2="58" y2="48" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+  <!-- Number -->
+  <text x="32" y="38" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-weight="800" font-size="18" fill="white">20</text>
+</svg>
