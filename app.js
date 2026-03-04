@@ -58,6 +58,7 @@ const CHEATSHEETS = [
   { file: 'gas-reference.md', name: 'GAS Reference', icon: '&#9889;', desc: 'Abilities, effects, tags, cues, damage pipeline.', color: 'var(--c4)' },
   { file: 'material-nodes.md', name: 'Material Nodes', icon: '&#127912;', desc: 'Math, texture, parameter, PBR output nodes.', color: 'var(--c5)' },
   { file: 'essential-code.md', name: 'Essential Code', icon: '&#128293;', desc: 'The functions you will use every day. Blueprint, C++, and GAS.', color: 'var(--c1)' },
+  { file: 'debugging.md', name: 'Debugging', icon: '&#128027;', desc: 'Output Log, breakpoints, visual debug, GAS/AI debug, crash recovery.', color: 'var(--c4)' },
 ];
 const BIBLE = [
   { file: 'game-design-doc.md', name: 'Game Design Document', icon: '&#128220;', desc: 'Full GDD: concept, systems, phases, timeline.', color: 'var(--c1)' },
