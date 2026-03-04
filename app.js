@@ -10,12 +10,12 @@ import { getFirestore, doc, getDoc, setDoc, onSnapshot } from 'https://www.gstat
 // ---- Firebase config ----
 // REPLACE THIS with your Firebase project config (see SETUP.md)
 const FIREBASE_CONFIG = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: ""
+  apiKey: "AIzaSyADM0028-N1OBDjvCmbl9i99gaXIfJXG-I",
+  authDomain: "tabletop-quest.firebaseapp.com",
+  projectId: "tabletop-quest",
+  storageBucket: "tabletop-quest.firebasestorage.app",
+  messagingSenderId: "990562651380",
+  appId: "1:990562651380:web:e39b41c8aca866ffeb62a1"
 };
 
 // ---- Firebase init ----
