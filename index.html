@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tabletop Quest Academy</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+  <!-- Mobile header -->
+  <header id="mobile-header">
+    <button id="menu-btn" onclick="toggleSidebar()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+    <h1 id="mobile-title">Tabletop Quest Academy</h1>
+    <div id="mobile-progress-ring">
+      <svg viewBox="0 0 36 36">
+        <path class="ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+        <path class="ring-fill" id="mobile-ring" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+      </svg>
+      <span id="mobile-pct">0%</span>
+    </div>
+  </header>
+
+  <!-- Sidebar overlay for mobile -->
+  <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+  <!-- Sidebar -->
+  <nav id="sidebar">
+    <div id="sidebar-header">
+      <div id="logo">
+        <div id="logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+            <path d="M2 17l10 5 10-5"/>
+            <path d="M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <div>
+          <h1>TQ Academy</h1>
+          <p id="tagline">Phase 0: Learning</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overall progress -->
+    <div id="progress-card">
+      <div id="progress-header">
+        <span>Overall Progress</span>
+        <span id="progress-pct">0%</span>
+      </div>
+      <div id="progress-bar-outer">
+        <div id="progress-bar-inner"></div>
+      </div>
+      <p id="progress-detail">0 / 50 items complete</p>
+    </div>
+
+    <!-- Navigation -->
+    <div id="nav-sections">
+      <div class="nav-group">
+        <div class="nav-group-label">Home</div>
+        <a class="nav-item active" data-page="home" onclick="navigate('home')">
+          <span class="nav-icon">&#127968;</span>
+          <span>Dashboard</span>
+        </a>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-group-label">Modules</div>
+        <a class="nav-item" data-page="mod-01" onclick="navigate('mod-01')">
+          <span class="nav-dot" style="background:var(--c1)"></span>
+          <span>01. Unreal Basics</span>
+          <span class="nav-check" id="check-mod-01"></span>
+        </a>
+        <a class="nav-item" data-page="mod-02" onclick="navigate('mod-02')">
+          <span class="nav-dot" style="background:var(--c2)"></span>
+          <span>02. Blueprints</span>
+          <span class="nav-check" id="check-mod-02"></span>
+        </a>
+        <a class="nav-item" data-page="mod-03" onclick="navigate('mod-03')">
+          <span class="nav-dot" style="background:var(--c3)"></span>
+          <span>03. C++ in Unreal</span>
+          <span class="nav-check" id="check-mod-03"></span>
+        </a>
+        <a class="nav-item" data-page="mod-04" onclick="navigate('mod-04')">
+          <span class="nav-dot" style="background:var(--c4)"></span>
+          <span>04. Gameplay Abilities</span>
+          <span class="nav-check" id="check-mod-04"></span>
+        </a>
+        <a class="nav-item" data-page="mod-05" onclick="navigate('mod-05')">
+          <span class="nav-dot" style="background:var(--c5)"></span>
+          <span>05. Materials</span>
+          <span class="nav-check" id="check-mod-05"></span>
+        </a>
+        <a class="nav-item" data-page="mod-06" onclick="navigate('mod-06')">
+          <span class="nav-dot" style="background:var(--c6)"></span>
+          <span>06. Cameras & Input</span>
+          <span class="nav-check" id="check-mod-06"></span>
+        </a>
+        <a class="nav-item" data-page="mod-07" onclick="navigate('mod-07')">
+          <span class="nav-dot" style="background:var(--c7)"></span>
+          <span>07. AI & Behavior Trees</span>
+          <span class="nav-check" id="check-mod-07"></span>
+        </a>
+        <a class="nav-item" data-page="mod-08" onclick="navigate('mod-08')">
+          <span class="nav-dot" style="background:var(--c8)"></span>
+          <span>08. UI with UMG</span>
+          <span class="nav-check" id="check-mod-08"></span>
+        </a>
+        <a class="nav-item" data-page="mod-09" onclick="navigate('mod-09')">
+          <span class="nav-dot" style="background:var(--c9)"></span>
+          <span>09. World Partition</span>
+          <span class="nav-check" id="check-mod-09"></span>
+        </a>
+        <a class="nav-item" data-page="mod-10" onclick="navigate('mod-10')">
+          <span class="nav-dot" style="background:var(--c10)"></span>
+          <span>10. Audio Systems</span>
+          <span class="nav-check" id="check-mod-10"></span>
+        </a>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-group-label">Reference</div>
+        <a class="nav-item" data-page="cheatsheets" onclick="navigate('cheatsheets')">
+          <span class="nav-icon">&#9889;</span>
+          <span>Cheatsheets</span>
+        </a>
+        <a class="nav-item" data-page="bible" onclick="navigate('bible')">
+          <span class="nav-icon">&#128214;</span>
+          <span>Project Bible</span>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main content -->
+  <main id="content">
+    <!-- Home / Dashboard (default) -->
+    <div id="page-home" class="page active"></div>
+    <!-- Module pages -->
+    <div id="page-module" class="page"></div>
+    <!-- Cheatsheets -->
+    <div id="page-cheatsheets" class="page"></div>
+    <!-- Project Bible -->
+    <div id="page-bible" class="page"></div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
