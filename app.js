@@ -337,6 +337,14 @@ window.navigate = function(page, extra) {
     currentPage = 'bible';
     renderBibleDetail(extra);
     document.getElementById('page-bible').classList.add('active');
+  } else if (page === 'vs2026') {
+    currentPage = 'vs2026';
+    renderRefPage('vs2026', 'Visual Studio 2026', 'Settings, configuration, and shortcuts for UE5 C++ development.', 'var(--c3)', 'reference/vs2026.md');
+    document.getElementById('page-vs2026').classList.add('active');
+  } else if (page === 'ue57') {
+    currentPage = 'ue57';
+    renderRefPage('ue57', 'Unreal Engine 5.7', 'Editor preferences, project settings, viewport controls, and console commands.', 'var(--c2)', 'reference/ue57.md');
+    document.getElementById('page-ue57').classList.add('active');
   }
 
   window.scrollTo(0, 0);
@@ -534,6 +542,92 @@ async function renderBibleDetail(file) {
   const text = await loadMd(`project-bible/${file}`);
   document.getElementById('md-area').innerHTML = renderMd(text);
 }
+
+// ---- Render: Searchable Reference Page (VS2026 / UE5.7) ----
+let refRawText = {};
+let refRenderedSections = {};
+
+async function renderRefPage(id, title, desc, color, mdPath) {
+  const el = document.getElementById(`page-${id}`);
+  document.documentElement.style.setProperty('--accent', color);
+
+  let html = `
+    <div class="mod-header" style="--accent:${color}">
+      <div class="mod-header-label">Tools Reference</div>
+      <h1>${title}</h1>
+      <p>${desc}</p>
+    </div>
+    <div class="search-bar">
+      <input type="text" id="ref-search-${id}" placeholder="Search settings, shortcuts, configurations..." oninput="searchRef('${id}')" autocomplete="off" spellcheck="false">
+      <span class="search-icon">&#128269;</span>
+      <span class="search-count" id="search-count-${id}"></span>
+    </div>
+    <div class="md-content" id="ref-content-${id}"><div class="loading-spinner"></div></div>
+  `;
+  el.innerHTML = html;
+
+  const text = await loadMd(mdPath);
+  refRawText[id] = text;
+
+  // Parse into sections (split by ## headings)
+  const lines = text.split('\n');
+  const sections = [];
+  let current = null;
+  for (const line of lines) {
+    if (line.startsWith('## ')) {
+      if (current) sections.push(current);
+      current = { heading: line, lines: [line] };
+    } else if (line.startsWith('# ') && !line.startsWith('## ')) {
+      if (current) sections.push(current);
+      current = { heading: line, lines: [line] };
+    } else {
+      if (!current) current = { heading: '', lines: [] };
+      current.lines.push(line);
+    }
+  }
+  if (current) sections.push(current);
+  refRenderedSections[id] = sections;
+
+  document.getElementById(`ref-content-${id}`).innerHTML = renderMd(text);
+}
+
+window.searchRef = function(id) {
+  const input = document.getElementById(`ref-search-${id}`);
+  const query = input.value.trim().toLowerCase();
+  const countEl = document.getElementById(`search-count-${id}`);
+  const contentEl = document.getElementById(`ref-content-${id}`);
+  const sections = refRenderedSections[id];
+
+  if (!query || query.length < 2) {
+    contentEl.innerHTML = renderMd(refRawText[id]);
+    countEl.textContent = '';
+    return;
+  }
+
+  // Filter sections that contain the query
+  const matched = sections.filter(s => {
+    const text = s.lines.join('\n').toLowerCase();
+    return text.includes(query);
+  });
+
+  if (matched.length === 0) {
+    contentEl.innerHTML = `<div style="padding:32px;text-align:center;color:var(--text-dim);">No results for "<strong>${query}</strong>". Try a different term.</div>`;
+    countEl.textContent = '0 results';
+    return;
+  }
+
+  const filteredMd = matched.map(s => s.lines.join('\n')).join('\n\n');
+  let html = renderMd(filteredMd);
+
+  // Highlight matches in the rendered HTML (skip inside tags)
+  const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+  html = html.replace(/>([^<]+)</g, (match, text) => {
+    return '>' + text.replace(regex, '<mark class="search-highlight">$1</mark>') + '<';
+  });
+
+  contentEl.innerHTML = html;
+  countEl.textContent = `${matched.length} section${matched.length !== 1 ? 's' : ''} found`;
+};
 
 // ---- Init ----
 document.addEventListener('DOMContentLoaded', () => {
