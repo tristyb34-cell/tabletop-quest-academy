@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tabletop Quest Academy</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0f1117">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -149,6 +153,15 @@
         </a>
       </div>
     </div>
+
+    <!-- Global search trigger -->
+    <div id="sidebar-search">
+      <button onclick="openGlobalSearch()" class="sidebar-search-btn">
+        <span class="search-icon-sm">&#128269;</span>
+        <span>Search...</span>
+        <kbd>&#8984;K</kbd>
+      </button>
+    </div>
   </nav>
 
   <!-- Sync banner -->
@@ -170,6 +183,20 @@
         <button class="modal-btn primary" onclick="connectSync()">Connect</button>
       </div>
       <p id="sync-error" class="sync-error"></p>
+    </div>
+  </div>
+
+  <!-- Global Search Modal -->
+  <div id="global-search-modal" class="modal-overlay" onclick="if(event.target===this)closeGlobalSearch()">
+    <div class="gs-modal">
+      <div class="gs-input-wrap">
+        <span class="gs-search-icon">&#128269;</span>
+        <input type="text" id="global-search-input" placeholder="Search modules, cheatsheets, references..." oninput="onGlobalSearchInput()" autocomplete="off" spellcheck="false">
+        <kbd class="gs-esc">esc</kbd>
+      </div>
+      <div class="gs-results" id="global-search-results">
+        <div class="gs-hint">Start typing to search across all content...</div>
+      </div>
     </div>
   </div>
 

@@ -1,0 +1,17 @@
+{
+  "name": "Tabletop Quest Academy",
+  "short_name": "TQ Academy",
+  "description": "Your path from zero to a DnD tabletop RPG in Unreal Engine 5",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#0f1117",
+  "background_color": "#0f1117",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

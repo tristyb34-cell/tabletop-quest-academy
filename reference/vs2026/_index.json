@@ -1,0 +1,157 @@
+[
+  {
+    "id": "installation-and-workloads",
+    "title": "Installation and Workloads",
+    "file": "01-installation-and-workloads.md"
+  },
+  {
+    "id": "the-ide-layout",
+    "title": "The IDE Layout",
+    "file": "02-the-ide-layout.md"
+  },
+  {
+    "id": "menus-every-top-level-menu",
+    "title": "Menus (Every Top-Level Menu)",
+    "file": "03-menus-every-top-level-menu.md"
+  },
+  {
+    "id": "text-editor-settings",
+    "title": "Text Editor Settings",
+    "file": "04-text-editor-settings.md"
+  },
+  {
+    "id": "environment-settings",
+    "title": "Environment Settings",
+    "file": "05-environment-settings.md"
+  },
+  {
+    "id": "projects-and-solutions-settings",
+    "title": "Projects and Solutions Settings",
+    "file": "06-projects-and-solutions-settings.md"
+  },
+  {
+    "id": "source-control",
+    "title": "Source Control",
+    "file": "07-source-control.md"
+  },
+  {
+    "id": "debugging-comprehensive",
+    "title": "Debugging (Comprehensive)",
+    "file": "08-debugging-comprehensive.md"
+  },
+  {
+    "id": "intellisense-and-code-navigation",
+    "title": "IntelliSense and Code Navigation",
+    "file": "09-intellisense-and-code-navigation.md"
+  },
+  {
+    "id": "refactoring",
+    "title": "Refactoring",
+    "file": "10-refactoring.md"
+  },
+  {
+    "id": "code-analysis",
+    "title": "Code Analysis",
+    "file": "11-code-analysis.md"
+  },
+  {
+    "id": "build-system",
+    "title": "Build System",
+    "file": "12-build-system.md"
+  },
+  {
+    "id": "testing",
+    "title": "Testing",
+    "file": "13-testing.md"
+  },
+  {
+    "id": "nuget-package-manager",
+    "title": "NuGet Package Manager",
+    "file": "14-nuget-package-manager.md"
+  },
+  {
+    "id": "extensions",
+    "title": "Extensions",
+    "file": "15-extensions.md"
+  },
+  {
+    "id": "terminal-and-command-window",
+    "title": "Terminal and Command Window",
+    "file": "16-terminal-and-command-window.md"
+  },
+  {
+    "id": "window-layouts",
+    "title": "Window Layouts",
+    "file": "17-window-layouts.md"
+  },
+  {
+    "id": "themes-and-customization",
+    "title": "Themes and Customization",
+    "file": "18-themes-and-customization.md"
+  },
+  {
+    "id": "keyboard-shortcuts-comprehensive-reference",
+    "title": "Keyboard Shortcuts (Comprehensive Reference)",
+    "file": "19-keyboard-shortcuts-comprehensive-reference.md"
+  },
+  {
+    "id": "performance-and-memory-tools",
+    "title": "Performance and Memory Tools",
+    "file": "20-performance-and-memory-tools.md"
+  },
+  {
+    "id": "docker-and-containers",
+    "title": "Docker and Containers",
+    "file": "21-docker-and-containers.md"
+  },
+  {
+    "id": "cmake-support",
+    "title": "CMake Support",
+    "file": "22-cmake-support.md"
+  },
+  {
+    "id": "c-specific-features",
+    "title": "C++ Specific Features",
+    "file": "23-c-specific-features.md"
+  },
+  {
+    "id": "ai-features-github-copilot",
+    "title": "AI Features (GitHub Copilot)",
+    "file": "24-ai-features-github-copilot.md"
+  },
+  {
+    "id": "ue5-specific-workflow",
+    "title": "UE5-Specific Workflow",
+    "file": "25-ue5-specific-workflow.md"
+  },
+  {
+    "id": "accessibility",
+    "title": "Accessibility",
+    "file": "26-accessibility.md"
+  },
+  {
+    "id": "tips-and-hidden-features",
+    "title": "Tips and Hidden Features",
+    "file": "27-tips-and-hidden-features.md"
+  },
+  {
+    "id": "intellitrace-enterprise-only",
+    "title": "IntelliTrace (Enterprise Only)",
+    "file": "28-intellitrace-enterprise-only.md"
+  },
+  {
+    "id": "settings-json-new-in-vs-2026",
+    "title": "Settings JSON (New in VS 2026)",
+    "file": "29-settings-json-new-in-vs-2026.md"
+  },
+  {
+    "id": "licensing-and-editions-comparison",
+    "title": "Licensing and Editions Comparison",
+    "file": "30-licensing-and-editions-comparison.md"
+  },
+  {
+    "id": "quick-reference-card",
+    "title": "Quick Reference Card",
+    "file": "31-quick-reference-card.md"
+  }
+]

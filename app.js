@@ -18,6 +18,45 @@ const FIREBASE_CONFIG = {
   appId: "1:990562651380:web:e39b41c8aca866ffeb62a1"
 };
 
+// ---- IndexedDB helpers (persistent markdown cache) ----
+const IDB_NAME = 'tqa-cache';
+const IDB_STORE = 'markdown';
+const CACHE_VERSION = 2;
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(IDB_NAME, CACHE_VERSION);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(IDB_STORE)) {
+        db.createObjectStore(IDB_STORE);
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function dbGet(key) {
+  try {
+    const db = await openDB();
+    return new Promise((resolve) => {
+      const tx = db.transaction(IDB_STORE, 'readonly');
+      const req = tx.objectStore(IDB_STORE).get(key);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => resolve(null);
+    });
+  } catch { return null; }
+}
+
+async function dbPut(key, value) {
+  try {
+    const db = await openDB();
+    const tx = db.transaction(IDB_STORE, 'readwrite');
+    tx.objectStore(IDB_STORE).put(value, key);
+  } catch { /* silent */ }
+}
+
 // ---- Firebase init ----
 let db = null;
 let unsubscribe = null;
@@ -278,16 +317,35 @@ window.connectSync = async function() {
   }
 };
 
-// ---- Markdown loading ----
+// ---- Markdown loading (with IndexedDB persistent cache) ----
 async function loadMd(path) {
+  // 1. In-memory cache
   if (mdCache[path]) return mdCache[path];
+  // 2. IndexedDB cache
+  const cached = await dbGet(path);
+  if (cached) {
+    mdCache[path] = cached;
+    // Background refresh from network (stale-while-revalidate)
+    fetch(path).then(r => r.ok ? r.text() : null).then(text => {
+      if (text && text !== cached) {
+        mdCache[path] = text;
+        dbPut(path, text);
+      }
+    }).catch(() => {});
+    return cached;
+  }
+  // 3. Network fetch
   try {
     const resp = await fetch(path);
     if (!resp.ok) return `*Could not load ${path}*`;
     const text = await resp.text();
     mdCache[path] = text;
+    dbPut(path, text);
     return text;
   } catch (e) {
+    // 4. Final fallback to IndexedDB (offline)
+    const fallback = await dbGet(path);
+    if (fallback) return fallback;
     return `*Error loading ${path}: ${e.message}*`;
   }
 }
@@ -543,53 +601,242 @@ async function renderBibleDetail(file) {
   document.getElementById('md-area').innerHTML = renderMd(text);
 }
 
-// ---- Render: Searchable Reference Page (VS2026 / UE5.7) ----
+// ---- Render: Searchable Reference Page (VS2026 / UE5.7) with TOC + Split Sections ----
 let refRawText = {};
 let refRenderedSections = {};
+let refTocObserver = null;
+let refSectionIndexes = {};
+let refExpandedSections = {};
 
-async function renderRefPage(id, title, desc, color, mdPath) {
-  const el = document.getElementById(`page-${id}`);
-  document.documentElement.style.setProperty('--accent', color);
+function slugify(text) {
+  return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
 
-  let html = `
-    <div class="mod-header" style="--accent:${color}">
-      <div class="mod-header-label">Tools Reference</div>
-      <h1>${title}</h1>
-      <p>${desc}</p>
-    </div>
-    <div class="search-bar">
-      <input type="text" id="ref-search-${id}" placeholder="Search settings, shortcuts, configurations..." oninput="searchRef('${id}')" autocomplete="off" spellcheck="false">
-      <span class="search-icon">&#128269;</span>
-      <span class="search-count" id="search-count-${id}"></span>
-    </div>
-    <div class="md-content" id="ref-content-${id}"><div class="loading-spinner"></div></div>
-  `;
-  el.innerHTML = html;
-
-  const text = await loadMd(mdPath);
-  refRawText[id] = text;
-
-  // Parse into sections (split by ## headings)
+function parseSections(text) {
   const lines = text.split('\n');
   const sections = [];
   let current = null;
   for (const line of lines) {
     if (line.startsWith('## ')) {
       if (current) sections.push(current);
-      current = { heading: line, lines: [line] };
+      current = { heading: line.replace(/^## /, ''), lines: [line], subheadings: [] };
     } else if (line.startsWith('# ') && !line.startsWith('## ')) {
       if (current) sections.push(current);
-      current = { heading: line, lines: [line] };
+      current = { heading: line.replace(/^# /, ''), lines: [line], subheadings: [] };
     } else {
-      if (!current) current = { heading: '', lines: [] };
+      if (!current) current = { heading: '', lines: [], subheadings: [] };
+      if (line.startsWith('### ')) {
+        current.subheadings.push(line.replace(/^### /, ''));
+      }
       current.lines.push(line);
     }
   }
   if (current) sections.push(current);
-  refRenderedSections[id] = sections;
-
-  document.getElementById(`ref-content-${id}`).innerHTML = renderMd(text);
+  return sections;
 }
+
+async function renderRefPage(id, title, desc, color, mdPath) {
+  const el = document.getElementById(`page-${id}`);
+  document.documentElement.style.setProperty('--accent', color);
+
+  // Try to load split sections first
+  const splitDir = mdPath.replace('.md', '/');
+  let sections = null;
+  let indexData = null;
+
+  try {
+    const indexResp = await fetch(splitDir + '_index.json');
+    if (indexResp.ok) {
+      indexData = await indexResp.json();
+      refSectionIndexes[id] = indexData;
+    }
+  } catch { /* split files not available, fall back to monolith */ }
+
+  if (indexData) {
+    // Render section cards with lazy loading
+    let html = `
+      <div class="mod-header" style="--accent:${color}">
+        <div class="mod-header-label">Tools Reference</div>
+        <h1>${title}</h1>
+        <p>${desc}</p>
+      </div>
+      <div class="search-bar">
+        <input type="text" id="ref-search-${id}" placeholder="Search settings, shortcuts, configurations..." oninput="searchRef('${id}')" autocomplete="off" spellcheck="false">
+        <span class="search-icon">&#128269;</span>
+        <span class="search-count" id="search-count-${id}"></span>
+      </div>
+      <div class="ref-toc-mobile">
+        <button class="toc-toggle" onclick="toggleRefToc('${id}')">&#9776; Table of Contents</button>
+        <div class="toc-dropdown" id="toc-dropdown-${id}"></div>
+      </div>
+      <div class="ref-layout" id="ref-layout-${id}">
+        <nav class="ref-toc" id="ref-toc-${id}">
+          <div class="toc-header">Table of Contents</div>
+          <ul class="toc-list" id="toc-list-${id}">
+            ${indexData.map(s => `<li class="toc-item" data-section="${s.id}"><a onclick="expandRefSection('${id}','${s.id}');scrollToSection('${s.id}')">${s.title}</a></li>`).join('')}
+          </ul>
+        </nav>
+        <div class="ref-sections" id="ref-content-${id}">
+          ${indexData.map(s => `
+            <div class="ref-section-card" id="card-${s.id}" data-id="${s.id}" data-file="${s.file}">
+              <h2 class="ref-section-title" onclick="expandRefSection('${id}','${s.id}')">${s.title}<span class="expand-icon">&#9654;</span></h2>
+              <div class="ref-section-body" id="body-${s.id}"></div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+    el.innerHTML = html;
+    refExpandedSections[id] = {};
+
+    // Build mobile TOC dropdown
+    const dropdownEl = document.getElementById(`toc-dropdown-${id}`);
+    if (dropdownEl) {
+      dropdownEl.innerHTML = `<ul class="toc-list">${indexData.map(s => `<li class="toc-item"><a onclick="expandRefSection('${id}','${s.id}');scrollToSection('${s.id}');toggleRefToc('${id}')">${s.title}</a></li>`).join('')}</ul>`;
+    }
+
+    // Also load full monolith for search (in background)
+    loadMd(mdPath).then(text => {
+      refRawText[id] = text;
+      refRenderedSections[id] = parseSections(text);
+    });
+
+    setupTocObserver(id, indexData);
+  } else {
+    // Fallback: load full monolith file
+    let html = `
+      <div class="mod-header" style="--accent:${color}">
+        <div class="mod-header-label">Tools Reference</div>
+        <h1>${title}</h1>
+        <p>${desc}</p>
+      </div>
+      <div class="search-bar">
+        <input type="text" id="ref-search-${id}" placeholder="Search settings, shortcuts, configurations..." oninput="searchRef('${id}')" autocomplete="off" spellcheck="false">
+        <span class="search-icon">&#128269;</span>
+        <span class="search-count" id="search-count-${id}"></span>
+      </div>
+      <div class="ref-toc-mobile">
+        <button class="toc-toggle" onclick="toggleRefToc('${id}')">&#9776; Table of Contents</button>
+        <div class="toc-dropdown" id="toc-dropdown-${id}"></div>
+      </div>
+      <div class="ref-layout" id="ref-layout-${id}">
+        <nav class="ref-toc" id="ref-toc-${id}">
+          <div class="toc-header">Table of Contents</div>
+          <ul class="toc-list" id="toc-list-${id}"></ul>
+        </nav>
+        <div class="ref-sections" id="ref-content-${id}"><div class="loading-spinner"></div></div>
+      </div>
+    `;
+    el.innerHTML = html;
+
+    const text = await loadMd(mdPath);
+    refRawText[id] = text;
+
+    const secs = parseSections(text);
+    refRenderedSections[id] = secs;
+
+    // Build TOC
+    const tocList = document.getElementById(`toc-list-${id}`);
+    const tocItems = secs.filter(s => s.heading).map(s => {
+      const slug = slugify(s.heading);
+      let li = `<li class="toc-item" data-section="${slug}"><a onclick="scrollToSection('${slug}')">${s.heading}</a>`;
+      if (s.subheadings.length) {
+        li += '<ul class="toc-sub">' + s.subheadings.map(sh => `<li><a onclick="scrollToSection('${slugify(sh)}')">${sh}</a></li>`).join('') + '</ul>';
+      }
+      li += '</li>';
+      return li;
+    });
+    tocList.innerHTML = tocItems.join('');
+
+    // Build mobile dropdown
+    const dropdownEl = document.getElementById(`toc-dropdown-${id}`);
+    if (dropdownEl) dropdownEl.innerHTML = `<ul class="toc-list">${tocItems.join('')}</ul>`;
+
+    // Render content with IDs on headings
+    let renderedHtml = '';
+    for (const s of secs) {
+      const slug = slugify(s.heading);
+      let sectionMd = s.lines.join('\n');
+      // Add IDs to ## and ### headings
+      let sectionHtml = renderMd(sectionMd);
+      if (s.heading) {
+        sectionHtml = `<div id="section-${slug}" class="ref-section-anchor"></div>` + sectionHtml;
+      }
+      for (const sh of s.subheadings) {
+        const subSlug = slugify(sh);
+        sectionHtml = sectionHtml.replace(
+          new RegExp(`(<h3[^>]*>)(${sh.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`),
+          `$1<span id="section-${subSlug}"></span>$2`
+        );
+      }
+      renderedHtml += sectionHtml;
+    }
+    document.getElementById(`ref-content-${id}`).innerHTML = renderedHtml;
+
+    setupTocObserver(id, secs.filter(s => s.heading).map(s => ({ id: slugify(s.heading) })));
+  }
+}
+
+function setupTocObserver(refId, items) {
+  if (refTocObserver) refTocObserver.disconnect();
+
+  refTocObserver = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (entry.isIntersecting) {
+        const sectionId = entry.target.id.replace('section-', '').replace('card-', '');
+        document.querySelectorAll(`#toc-list-${refId} .toc-item`).forEach(li => li.classList.remove('active'));
+        const activeLi = document.querySelector(`#toc-list-${refId} .toc-item[data-section="${sectionId}"]`);
+        if (activeLi) activeLi.classList.add('active');
+      }
+    }
+  }, { rootMargin: '-10% 0px -80% 0px' });
+
+  // Observe after a tick to let DOM settle
+  setTimeout(() => {
+    for (const item of items) {
+      const target = document.getElementById(`section-${item.id}`) || document.getElementById(`card-${item.id}`);
+      if (target) refTocObserver.observe(target);
+    }
+  }, 100);
+}
+
+window.scrollToSection = function(slug) {
+  const target = document.getElementById(`section-${slug}`) || document.getElementById(`card-${slug}`);
+  if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
+
+window.toggleRefToc = function(id) {
+  const dropdown = document.getElementById(`toc-dropdown-${id}`);
+  if (dropdown) dropdown.classList.toggle('open');
+};
+
+window.expandRefSection = async function(refId, sectionId) {
+  const card = document.getElementById(`card-${sectionId}`);
+  const body = document.getElementById(`body-${sectionId}`);
+  if (!card || !body) return;
+
+  if (refExpandedSections[refId][sectionId]) {
+    // Toggle collapse
+    card.classList.toggle('expanded');
+    return;
+  }
+
+  // Load section content
+  const indexData = refSectionIndexes[refId];
+  if (!indexData) return;
+  const sectionInfo = indexData.find(s => s.id === sectionId);
+  if (!sectionInfo) return;
+
+  const splitDir = refId === 'ue57' ? 'reference/ue57/' : 'reference/vs2026/';
+  body.innerHTML = '<div class="loading-spinner"></div>';
+  card.classList.add('expanded');
+
+  const text = await loadMd(splitDir + sectionInfo.file);
+  // Remove the ## heading from the content since the card title already shows it
+  const contentWithoutH2 = text.replace(/^## .+\n+/, '');
+  body.innerHTML = renderMd(contentWithoutH2);
+  refExpandedSections[refId][sectionId] = true;
+};
 
 window.searchRef = function(id) {
   const input = document.getElementById(`ref-search-${id}`);
@@ -598,8 +845,23 @@ window.searchRef = function(id) {
   const contentEl = document.getElementById(`ref-content-${id}`);
   const sections = refRenderedSections[id];
 
+  if (!sections) return;
+
   if (!query || query.length < 2) {
-    contentEl.innerHTML = renderMd(refRawText[id]);
+    // If using split sections, restore section cards
+    if (refSectionIndexes[id]) {
+      const indexData = refSectionIndexes[id];
+      contentEl.innerHTML = indexData.map(s => `
+        <div class="ref-section-card" id="card-${s.id}" data-id="${s.id}" data-file="${s.file}">
+          <h2 class="ref-section-title" onclick="expandRefSection('${id}','${s.id}')">${s.title}<span class="expand-icon">&#9654;</span></h2>
+          <div class="ref-section-body" id="body-${s.id}"></div>
+        </div>
+      `).join('');
+      refExpandedSections[id] = {};
+      setupTocObserver(id, indexData);
+    } else {
+      contentEl.innerHTML = renderMd(refRawText[id]);
+    }
     countEl.textContent = '';
     return;
   }
@@ -629,6 +891,220 @@ window.searchRef = function(id) {
   countEl.textContent = `${matched.length} section${matched.length !== 1 ? 's' : ''} found`;
 };
 
+// ---- Global Search (Cmd/Ctrl+K) ----
+let searchIndex = null;
+let searchIndexBuilding = false;
+
+async function buildSearchIndex() {
+  if (searchIndex || searchIndexBuilding) return;
+  searchIndexBuilding = true;
+
+  const entries = [];
+
+  // Modules
+  for (const m of MODULES) {
+    for (const tab of TABS) {
+      const path = `modules/${m.dir}/${tab}.md`;
+      const text = await loadMd(path);
+      entries.push({
+        title: `${m.name} - ${tab.charAt(0).toUpperCase() + tab.slice(1)}`,
+        category: 'Module',
+        page: `mod-${m.id}`,
+        extra: tab,
+        text: text
+      });
+    }
+  }
+
+  // Cheatsheets
+  for (const cs of CHEATSHEETS) {
+    const text = await loadMd(`cheatsheets/${cs.file}`);
+    entries.push({
+      title: cs.name,
+      category: 'Cheatsheet',
+      page: 'cheatsheet-detail',
+      extra: cs.file,
+      text: text
+    });
+  }
+
+  // Bible
+  for (const b of BIBLE) {
+    const text = await loadMd(`project-bible/${b.file}`);
+    entries.push({
+      title: b.name,
+      category: 'Bible',
+      page: 'bible-detail',
+      extra: b.file,
+      text: text
+    });
+  }
+
+  // References (load full files)
+  for (const ref of [
+    { path: 'reference/ue57.md', name: 'Unreal Engine 5.7', page: 'ue57' },
+    { path: 'reference/vs2026.md', name: 'Visual Studio 2026', page: 'vs2026' },
+  ]) {
+    const text = await loadMd(ref.path);
+    // Split into sections for granular results
+    const secs = parseSections(text);
+    for (const s of secs) {
+      if (!s.heading) continue;
+      entries.push({
+        title: `${ref.name}: ${s.heading}`,
+        category: 'Reference',
+        page: ref.page,
+        extra: slugify(s.heading),
+        text: s.lines.join('\n')
+      });
+    }
+  }
+
+  searchIndex = entries;
+  searchIndexBuilding = false;
+}
+
+function performSearch(query) {
+  if (!searchIndex) return [];
+  const q = query.toLowerCase();
+  const results = [];
+
+  for (const entry of searchIndex) {
+    const textLower = entry.text.toLowerCase();
+    const titleLower = entry.title.toLowerCase();
+    const idx = textLower.indexOf(q);
+    if (idx === -1 && !titleLower.includes(q)) continue;
+
+    // Extract snippet around match
+    let snippet = '';
+    const matchIdx = idx !== -1 ? idx : 0;
+    const start = Math.max(0, matchIdx - 60);
+    const end = Math.min(entry.text.length, matchIdx + query.length + 100);
+    snippet = (start > 0 ? '...' : '') + entry.text.substring(start, end).replace(/\n/g, ' ') + (end < entry.text.length ? '...' : '');
+
+    // Score: title match is worth more
+    const score = titleLower.includes(q) ? 2 : 1;
+    results.push({ ...entry, snippet, score });
+
+    if (results.length >= 20) break;
+  }
+
+  results.sort((a, b) => b.score - a.score);
+  return results.slice(0, 20);
+}
+
+let searchDebounceTimer = null;
+
+window.openGlobalSearch = async function() {
+  const modal = document.getElementById('global-search-modal');
+  const input = document.getElementById('global-search-input');
+  modal.classList.add('open');
+  input.value = '';
+  input.focus();
+  document.getElementById('global-search-results').innerHTML = '<div class="gs-hint">Start typing to search across all content...</div>';
+  // Build index in background if not ready
+  buildSearchIndex();
+};
+
+window.closeGlobalSearch = function() {
+  document.getElementById('global-search-modal').classList.remove('open');
+};
+
+window.onGlobalSearchInput = function() {
+  clearTimeout(searchDebounceTimer);
+  searchDebounceTimer = setTimeout(() => {
+    const input = document.getElementById('global-search-input');
+    const query = input.value.trim();
+    const resultsEl = document.getElementById('global-search-results');
+
+    if (query.length < 2) {
+      resultsEl.innerHTML = '<div class="gs-hint">Start typing to search across all content...</div>';
+      return;
+    }
+
+    if (!searchIndex) {
+      resultsEl.innerHTML = '<div class="gs-hint">Building search index...</div>';
+      return;
+    }
+
+    const results = performSearch(query);
+    if (results.length === 0) {
+      resultsEl.innerHTML = `<div class="gs-hint">No results for "${query}"</div>`;
+      return;
+    }
+
+    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    resultsEl.innerHTML = results.map((r, i) => {
+      const highlightedSnippet = r.snippet.replace(regex, '<mark>$1</mark>');
+      const highlightedTitle = r.title.replace(regex, '<mark>$1</mark>');
+      return `<div class="gs-result ${i === 0 ? 'selected' : ''}" data-index="${i}" onclick="pickSearchResult(${i})">
+        <span class="gs-badge gs-badge-${r.category.toLowerCase()}">${r.category}</span>
+        <div class="gs-result-title">${highlightedTitle}</div>
+        <div class="gs-result-snippet">${highlightedSnippet}</div>
+      </div>`;
+    }).join('');
+
+    // Store results for keyboard navigation
+    window._gsResults = results;
+    window._gsSelectedIdx = 0;
+  }, 150);
+};
+
+window._gsResults = [];
+window._gsSelectedIdx = 0;
+
+window.pickSearchResult = function(idx) {
+  const results = window._gsResults;
+  if (!results || !results[idx]) return;
+  const r = results[idx];
+  closeGlobalSearch();
+  navigate(r.page, r.extra);
+};
+
+// Keyboard nav for global search
+document.addEventListener('keydown', (e) => {
+  const modal = document.getElementById('global-search-modal');
+
+  // Open with Cmd/Ctrl+K
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+    e.preventDefault();
+    if (modal && modal.classList.contains('open')) {
+      closeGlobalSearch();
+    } else {
+      openGlobalSearch();
+    }
+    return;
+  }
+
+  if (!modal || !modal.classList.contains('open')) return;
+
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    closeGlobalSearch();
+    return;
+  }
+
+  const resultEls = document.querySelectorAll('.gs-result');
+  if (!resultEls.length) return;
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    window._gsSelectedIdx = Math.min(window._gsSelectedIdx + 1, resultEls.length - 1);
+    resultEls.forEach(el => el.classList.remove('selected'));
+    resultEls[window._gsSelectedIdx].classList.add('selected');
+    resultEls[window._gsSelectedIdx].scrollIntoView({ block: 'nearest' });
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    window._gsSelectedIdx = Math.max(window._gsSelectedIdx - 1, 0);
+    resultEls.forEach(el => el.classList.remove('selected'));
+    resultEls[window._gsSelectedIdx].classList.add('selected');
+    resultEls[window._gsSelectedIdx].scrollIntoView({ block: 'nearest' });
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    pickSearchResult(window._gsSelectedIdx);
+  }
+});
+
 // ---- Init ----
 document.addEventListener('DOMContentLoaded', () => {
   const fbOk = initFirebase();
@@ -644,4 +1120,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   updateAllProgress();
   navigate('home');
+
+  // Register service worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(err => {
+      console.warn('SW registration failed:', err);
+    });
+  }
 });
