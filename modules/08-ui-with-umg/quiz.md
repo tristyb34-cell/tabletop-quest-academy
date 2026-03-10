@@ -5,68 +5,176 @@ Test your understanding of UMG and UI design in Unreal Engine. Try to answer eac
 ---
 
 ### Question 1
-What is a Widget Blueprint, and how does it differ from a regular Blueprint?
+
+What is the purpose of Anchors in UMG, and what happens if you do not set them correctly?
 
 <details>
-<summary>Answer</summary>
+<summary>Show Answer</summary>
 
-A Widget Blueprint is a specialised Blueprint designed for creating 2D user interface elements. It has a visual designer where you drag and drop UI components (text, images, buttons, progress bars, panels) and arrange them on a canvas. It also has a Graph tab for Blueprint logic, just like regular Blueprints.
+Anchors define where a widget is positioned **relative to the screen boundaries**. They ensure the widget stays in the correct position regardless of screen resolution. If you anchor a health bar to the bottom-left, it stays in the bottom-left whether the game is running at 720p, 1080p, or 4K. Without correct anchors, widgets are positioned in absolute pixel coordinates. A widget that looks perfectly placed at 1920x1080 may overlap with other elements, go off-screen, or appear in the wrong position at different resolutions. Always set anchors as the first step when placing any widget.
 
-The key difference is that a Widget Blueprint represents a piece of UI that gets drawn on top of the 3D game world, not an actor that exists within it. You create an instance of a Widget Blueprint and add it to the player's viewport (screen). Regular Blueprints represent actors or objects in the 3D world. A Widget Blueprint handles things like button clicks, text display, and layout, while a regular Blueprint handles things like movement, collision, and gameplay logic.
 </details>
 
 ---
 
 ### Question 2
-What are anchors in UMG, and why are they important?
+
+Why is event-driven UI updating (using Event Dispatchers) recommended over property binding for Tabletop Quest's HP bar?
 
 <details>
-<summary>Answer</summary>
+<summary>Show Answer</summary>
 
-Anchors define where a widget is positioned relative to its parent container. An anchor of (0, 0) means the widget is positioned relative to the top-left corner. An anchor of (1, 1) means it is relative to the bottom-right. An anchor of (0.5, 0.5) means it is centred.
+Property bindings run a function **every frame** to check the current value, even if the value has not changed. For a single HP bar this is negligible, but when you have 20+ bound properties (HP, mana, cooldowns, status effects, inventory counts), the per-frame cost adds up. Event-driven updates only fire **when the value actually changes**. The Player Character broadcasts `OnHPChanged` only when damage or healing occurs, and the widget updates only at that moment. For something like HP that changes a few times per minute, event-driven is dramatically more efficient than polling 60 times per second.
 
-Anchors are important because they make your UI work across different screen resolutions and aspect ratios. If you anchor an HP bar to the bottom-left, it stays in the bottom-left whether the player is on a 1920x1080 monitor or a 2560x1440 ultrawide. Without proper anchoring, moving to a different resolution can push UI elements off-screen or stack them on top of each other. Anchoring is the foundation of responsive UI layout.
 </details>
 
 ---
 
 ### Question 3
-What is the difference between property binding and event-driven updates for connecting UI to game data?
+
+How does the smooth HP bar lerp work, and why does it feel better than an instant snap?
 
 <details>
-<summary>Answer</summary>
+<summary>Show Answer</summary>
 
-Property binding evaluates a function every single frame to get the current value. You bind a progress bar's "Percent" property to a function that returns CurrentHP / MaxHP, and UMG calls that function every frame to update the display. This is simple to set up but can be inefficient when you have many bindings, because the work happens every frame regardless of whether the value changed.
+The lerp uses two values: `DisplayHP` (what the bar currently shows) and `ActualHP` (the real value). When damage occurs, `ActualHP` updates instantly, but `DisplayHP` catches up gradually using the formula `DisplayHP = Lerp(DisplayHP, ActualHP, DeltaTime * Speed)`. This creates a smooth sliding animation. It feels better because instant snaps are jarring and hard to read. If the player takes 30 damage, a snap changes the bar in a single frame (16ms at 60fps). The player might not even see it happen. A lerp over 0.3-0.5 seconds gives the player time to register the change, understand how much damage they took, and feel the impact. It also creates a satisfying visual flow.
 
-Event-driven updates only fire when the data actually changes. The game system dispatches an event (like "OnHPChanged") when HP is modified, and the UI widget listens for that event and updates itself only at that moment. This is more efficient because work only happens when needed, and it also allows you to trigger animations (like a smooth bar transition) at the exact moment of change rather than constantly checking.
-
-For a few simple bindings, either approach works. For a complex RPG UI with dozens of values, event-driven updates are the better choice.
 </details>
 
 ---
 
 ### Question 4
-Why would you build the inventory slot as its own separate Widget Blueprint instead of just placing all the elements directly in the inventory grid?
+
+Explain the difference between a Canvas Panel, a Horizontal Box, and an Overlay. When would you use each one?
 
 <details>
-<summary>Answer</summary>
+<summary>Show Answer</summary>
 
-Creating the inventory slot as a separate Widget Blueprint gives you reusability and maintainability. If you have 24 slots in the grid, you do not want to manually duplicate 24 copies of the same icon, button, and text layout. Instead, you create one InventorySlot widget and instantiate it 24 times.
+**Canvas Panel**: A free-form container where children are positioned with absolute X/Y coordinates (plus anchors). Use it as the root of a HUD or any layout where elements need to be in specific screen positions (HP bar bottom-left, minimap top-right).
 
-If you later need to change the slot's appearance (add a rarity border, change the font size, add a durability indicator), you change it in one place and all 24 slots update. If the elements were placed directly in the grid, you would need to make the same change 24 times.
+**Horizontal Box**: Arranges children left-to-right in a row, automatically handling spacing and sizing. Use it for lists of similar elements: the ability hotbar (6 slots in a row), the initiative tracker (portraits in a row), menu tabs.
 
-It also keeps the logic clean. Each slot widget handles its own click events, hover tooltips, and visual updates. The grid widget just manages the layout and passes item data to each slot. This separation of concerns makes the code easier to understand, test, and modify.
+**Overlay**: Stacks children on top of each other, centered by default. Use it for layered elements: an HP bar (background image + progress bar fill + text on top), a cooldown slot (icon + sweep overlay + key label).
+
 </details>
 
 ---
 
 ### Question 5
-In the turn-order display, why is it better to highlight the active character with a visual change (size, border, colour) rather than just showing their name in text?
+
+You are building the inventory tooltip for Tabletop Quest. When the player hovers over a Longsword of Flame (+3 Might, +2 Fire Damage), and they currently have a Steel Longsword equipped (+2 Might), what should the tooltip display for the stat comparison?
 
 <details>
-<summary>Answer</summary>
+<summary>Show Answer</summary>
 
-Visual changes communicate instantly. The player can glance at the turn order display and identify the active character in a fraction of a second based on the larger frame and golden highlight. Reading text requires more cognitive effort and takes longer, especially during a fast-paced combat encounter where attention is split between the turn order, the battlefield, and the ability bar.
+The tooltip should show:
 
-Visual hierarchy, where the most important element is the most visually prominent, is a core principle of UI design. The active character is the most important piece of information in the turn order, so it should be the most visually distinct. Size difference, colour contrast, and animation (like a subtle pulse or glow) all contribute to making the active character immediately obvious without requiring the player to read anything. This reduces cognitive load and lets the player focus on tactical decisions instead of parsing the UI.
+- **Longsword of Flame** (orange text, since it is likely Epic or Legendary rarity)
+- One-Handed Sword
+- +3 Might (**+1** in green, compared to the +2 on the current weapon)
+- +2 Fire Damage (**+2** in green, since the current weapon has no fire damage)
+
+The comparison section shows the net change: Might goes from +2 to +3, so the player gains +1 (green). Fire Damage goes from 0 to +2, so the player gains +2 (green). If any stat would decrease, that line would be red. This lets the player instantly see whether the new item is an upgrade without doing mental math.
+
+</details>
+
+---
+
+### Question 6
+
+How do you implement the typewriter effect for the dialogue system?
+
+<details>
+<summary>Show Answer</summary>
+
+Store the full dialogue string in `FullText` and track the current position with `CharIndex` (starting at 0). Set a repeating Timer that fires every 0.03 seconds (adjustable for speed). Each time it fires, increment `CharIndex` by 1 and set the Text Block to the substring of `FullText` from character 0 to `CharIndex`. When `CharIndex` equals the length of `FullText`, stop the timer and show the "continue" prompt. If the player presses the advance key while the typewriter is running, instantly set `CharIndex` to the full length (skip to end). If they press it when the text is fully displayed, advance to the next dialogue node.
+
+</details>
+
+---
+
+### Question 7
+
+Why does the initiative tracker need to update dynamically during combat, and what events should it respond to?
+
+<details>
+<summary>Show Answer</summary>
+
+The initiative tracker needs dynamic updates because combat state changes constantly. It should respond to:
+
+1. **OnTurnStarted(CombatantID)**: Move the gold highlight to the active combatant's slot with a smooth animation.
+2. **OnCombatantDied(CombatantID)**: Fade out and remove the dead combatant's slot, shift remaining slots to fill the gap.
+3. **OnCombatantAdded(CombatantID, Initiative)**: Insert a new slot at the correct position (e.g., when the Dragon summons Skeleton minions mid-fight).
+4. **OnStatusEffectChanged(CombatantID, Effect)**: Update or add/remove status effect icons on the affected slot.
+5. **OnHPChanged(CombatantID, NewHP, MaxHP)**: Update the mini HP bar below each portrait.
+
+Without these dynamic updates, the tracker would show stale data and confuse the player about whose turn it is.
+
+</details>
+
+---
+
+### Question 8
+
+What is a Widget Switcher, and how would you use it for the Settings screen in Tabletop Quest's pause menu?
+
+<details>
+<summary>Show Answer</summary>
+
+A Widget Switcher is a container that holds multiple child widgets but only displays **one at a time**, controlled by an Active Index. It works like browser tabs. For the Settings screen, you create tab buttons (Video, Audio, Controls, Accessibility) across the top, and a Widget Switcher below containing four child widgets (one for each category). When the player clicks the "Audio" tab, you set the Widget Switcher's Active Index to 1 (or whichever index corresponds to the Audio panel). Only the Audio settings panel is visible; the others are hidden but still exist and retain their state. This is more efficient than creating and destroying panels on every tab switch.
+
+</details>
+
+---
+
+### Question 9
+
+How should floating damage numbers be positioned on screen, and what visual differences should there be between a normal hit, a critical hit, and a heal?
+
+<details>
+<summary>Show Answer</summary>
+
+Damage numbers are positioned by projecting the damaged actor's world location to screen coordinates using **Project World Location to Widget Position**. Add a slight Y offset to place them above the character's head.
+
+Visual differences:
+- **Normal hit**: White text, standard size, floats upward 100 pixels over 1 second, fades from opacity 1.0 to 0.0
+- **Critical hit**: Yellow or gold text, 1.5x larger size, bounces up then slightly down (elastic ease), lasts 1.5 seconds, optional "!" appended
+- **Heal**: Green text, standard size, floats upward, same fade
+- **Miss**: Gray "MISS" text, smaller than normal, quicker fade (0.7 seconds)
+- **Status effect**: Purple text showing the effect name ("POISONED"), medium duration
+
+Each type uses the same widget class (`WBP_DamageNumber`) but with different parameters for color, scale, duration, and animation curve.
+
+</details>
+
+---
+
+### Question 10
+
+You are designing the HUD Manager for Tabletop Quest. The player is in exploration mode (seeing HP, mana, minimap, quest tracker). They enter combat, which transitions to turn-based mode. Mid-fight, they switch to real-time mode. Then they open the pause menu. Describe what the HUD Manager does at each transition.
+
+<details>
+<summary>Show Answer</summary>
+
+**Exploration to Turn-Based Combat:**
+- Fade out: Minimap, Quest Tracker
+- Keep visible: HP bar, Mana bar
+- Fade in: Initiative Tracker (top-center), Action Economy Panel (bottom-center showing Move/Action/Bonus)
+- Show: Hex grid overlay on the world
+
+**Turn-Based to Real-Time Combat (mid-fight switch):**
+- Fade out: Initiative Tracker, Action Economy Panel, Hex grid overlay
+- Keep visible: HP bar, Mana bar
+- Fade in: Ability Hotbar (bottom-center) with cooldown states
+
+**Real-Time Combat to Pause Menu:**
+- Keep all combat UI visible but dimmed (reduce opacity to 30%)
+- Overlay: Dark full-screen background (60% black)
+- Fade in: Pause Menu (centered)
+- Call Set Game Paused (true)
+- Call Set Input Mode UI Only
+- Show mouse cursor
+
+At each transition, the HUD Manager calls the appropriate show/hide functions with fade animations (0.3 seconds). It tracks the previous state so that closing the pause menu returns to the correct combat mode UI rather than defaulting to exploration.
+
 </details>

@@ -1,87 +1,113 @@
-# Module 03: Resources
+# Module 03: Resources - Claude's C++ Plugins
+
+A curated collection of documentation, tutorials, and references for working with C++ plugins in Unreal Engine 5.
 
 ---
 
-## Adding C++ to a Blueprint Project
+## Official Epic Games Documentation
 
-### How to Add C++ Classes to a Blueprint Project
-- In UE5: **Tools > New C++ Class**. Choose any parent class (or None) and click Create.
-- This generates the `Source/` folder, `.Build.cs` file, and project build files.
-- You only need to do this once. After that, you can add .h and .cpp files directly to the Source/ folder.
+### UE5 Programming with C++
+- **URL**: [https://dev.epicgames.com/documentation/en-us/unreal-engine/programming-with-cplusplus-in-unreal-engine](https://dev.epicgames.com/documentation/en-us/unreal-engine/programming-with-cplusplus-in-unreal-engine)
+- **Why it matters**: The official C++ programming guide. Covers the class hierarchy, macros (UCLASS, UPROPERTY, UFUNCTION), and the build system. Bookmark this as your primary reference.
 
-### Project Folder Structure
-After adding C++, your project folder looks like this:
-```
-TabletopQuest/
-  Content/          (assets, Blueprints, meshes, etc.)
-  Source/
-    TabletopQuest/  (your .h and .cpp files go here)
-      TabletopQuest.Build.cs
-      DiceLibrary.h
-      DiceLibrary.cpp
-  Binaries/         (compiled code, auto-generated)
-  Intermediate/     (build cache, auto-generated)
-```
+### Unreal Engine API Reference
+- **URL**: [https://dev.epicgames.com/documentation/en-us/unreal-engine/API](https://dev.epicgames.com/documentation/en-us/unreal-engine/API)
+- **Why it matters**: When Claude generates code that uses an engine class, look it up here to understand what it does. Search for any class name (like `UGameInstanceSubsystem` or `UPrimaryDataAsset`) to see its full API.
 
----
+### Gameplay Framework Overview
+- **URL**: [https://dev.epicgames.com/documentation/en-us/unreal-engine/gameplay-framework-in-unreal-engine](https://dev.epicgames.com/documentation/en-us/unreal-engine/gameplay-framework-in-unreal-engine)
+- **Why it matters**: Explains how GameMode, GameState, PlayerController, Pawn, and Character work together. Essential for understanding where your combat and ability systems fit in the engine's architecture.
 
-## Compile Troubleshooting
+### Plugins in UE5
+- **URL**: [https://dev.epicgames.com/documentation/en-us/unreal-engine/plugins-in-unreal-engine](https://dev.epicgames.com/documentation/en-us/unreal-engine/plugins-in-unreal-engine)
+- **Why it matters**: Official guide to creating, packaging, and distributing plugins. Covers the .uplugin descriptor format, module types, and loading phases.
 
-### Common Errors and Fixes
+### Programming Subsystems
+- **URL**: [https://dev.epicgames.com/documentation/en-us/unreal-engine/programming-subsystems-in-unreal-engine](https://dev.epicgames.com/documentation/en-us/unreal-engine/programming-subsystems-in-unreal-engine)
+- **Why it matters**: Explains all subsystem types (GameInstance, World, LocalPlayer, Engine, Editor). Covers when to use each type and how the engine manages their lifecycle. This is why we use UGameInstanceSubsystem for Tabletop Quest's core systems.
 
-**"Cannot open include file"**: The file name in the `#include` statement does not match the actual file name. Check capitalisation and spelling.
+### UE5 Coding Standard
+- **URL**: [https://dev.epicgames.com/documentation/en-us/unreal-engine/epic-cplusplus-coding-standard-for-unreal-engine](https://dev.epicgames.com/documentation/en-us/unreal-engine/epic-cplusplus-coding-standard-for-unreal-engine)
+- **Why it matters**: When reviewing Claude's code, this standard explains the naming conventions. A prefix means Actor, U prefix means UObject, F prefix means struct or plain class, E prefix means enum, I prefix means interface. Understanding these prefixes helps you read Claude's code even without deep C++ knowledge.
 
-**"Unresolved external symbol"**: A function is declared in the .h file but not defined in the .cpp file, or the function signature does not match between the two files. Ask Claude to check both files.
-
-**"TABLETOPQUEST_API: undeclared identifier"**: The module name (the all-caps part) does not match your project name. Check the `Source/TabletopQuest/TabletopQuest.Build.cs` file for the correct module name.
-
-**Editor crashes on compile**: Close UE5. Delete the `Binaries/`, `Intermediate/`, and `Saved/` folders. Reopen the project. This forces a clean rebuild.
-
-**"Hot Reload" warnings**: UE5's hot reload (compiling while the editor is open) can sometimes cause instability. If things get weird, close the editor, compile from your IDE (Visual Studio or Rider), then reopen UE5.
-
-### Nuclear Option
-If nothing works: delete Binaries/, Intermediate/, and Saved/, then right-click the .uproject file and select "Generate Visual Studio Project Files." Open in Visual Studio and build from there. Then open UE5.
+### Scripting the Editor with Python
+- **URL**: [https://dev.epicgames.com/documentation/en-us/unreal-engine/scripting-the-unreal-editor-using-python](https://dev.epicgames.com/documentation/en-us/unreal-engine/scripting-the-unreal-editor-using-python)
+- **Why it matters**: The official guide to UE5's Python API. Covers the `unreal` module, asset manipulation, editor utilities, and automation. Essential for the Python automation workflow covered in this module.
 
 ---
 
-## Blueprint Function Library Pattern
+## Community Tutorials
 
-This is the pattern you will use most often for Claude's C++ plugins:
-
-- **Blueprint Function Library**: A class with static functions that appear as nodes in any Blueprint. No need to spawn or reference an Actor.
-- **Key macro**: `UFUNCTION(BlueprintCallable, Category = "YourCategory")` makes functions visible in Blueprints.
-- **Static functions**: All functions in a Blueprint Function Library are static, meaning they do not belong to any specific Actor. You can call them from anywhere.
-
-### Official Docs: Blueprint Function Libraries
-- **URL**: [https://docs.unrealengine.com/5.4/en-US/blueprint-function-libraries-in-unreal-engine/](https://docs.unrealengine.com/5.4/en-US/blueprint-function-libraries-in-unreal-engine/)
-
----
-
-## IDE Setup (Optional, for Browsing Code)
-
-You do not need an IDE to paste files and compile. But if you want to browse or edit C++ files with syntax highlighting:
-
-### Visual Studio Community 2022 (Free, Windows)
-- Download from [https://visualstudio.microsoft.com/](https://visualstudio.microsoft.com/)
-- During install, select the "Game development with C++" workload.
-- UE5 integrates with Visual Studio automatically.
-
-### Rider (Paid, Cross-Platform)
-- Download from [https://www.jetbrains.com/rider/](https://www.jetbrains.com/rider/)
-- Excellent UE5 support with fast indexing and smart navigation.
-
-### VS Code (Free, Cross-Platform)
-- Works with the C/C++ extension for basic syntax highlighting.
-- Not as deeply integrated with UE5 as Visual Studio or Rider, but fine for reading and pasting code.
-
----
-
-## YouTube References
-
-### Alex Forsythe: "The Unreal Engine Game Framework"
-- **URL**: [https://www.youtube.com/@AlexForsythe](https://www.youtube.com/@AlexForsythe)
-- Clear explanations of how C++ and Blueprints interact in UE5. Good for understanding the architecture without getting lost in code.
-
-### Tom Looman: C++ and Blueprint Integration
+### Tom Looman's UE5 C++ Tutorials
 - **URL**: [https://www.tomlooman.com/](https://www.tomlooman.com/)
-- Written tutorials on creating C++ classes that work seamlessly with Blueprints. Practical and well-explained.
+- **Why it matters**: Tom Looman is one of the best UE5 C++ educators. His tutorials cover subsystems, gameplay framework patterns, and practical C++ architecture. His "Create Multiplayer Games with C++" course is particularly well-regarded.
+
+### Ben UI's UE5 C++ Reference
+- **URL**: [https://benui.ca/unreal/](https://benui.ca/unreal/)
+- **Why it matters**: A well-organized reference for UPROPERTY specifiers, UFUNCTION specifiers, and common UE5 C++ patterns. Great for quickly looking up what a specific macro specifier does.
+
+### The Unreal Engine Community Wiki
+- **URL**: [https://unrealcommunity.wiki/](https://unrealcommunity.wiki/)
+- **Why it matters**: Community-maintained wiki with practical how-to articles. Particularly useful for niche topics that the official docs do not cover in depth.
+
+### Alex Forsythe's "The Unreal Engine Game Framework"
+- **URL**: [https://www.youtube.com/watch?v=IaU2Hue-ApI](https://www.youtube.com/watch?v=IaU2Hue-ApI)
+- **Why it matters**: An excellent video breakdown of how GameMode, GameState, PlayerController, and PlayerState work together. Useful for understanding where your combat manager subsystem fits in the bigger picture.
+
+---
+
+## UE5 Blueprint and C++ Interaction
+
+### Exposing C++ to Blueprints (Official)
+- **URL**: [https://dev.epicgames.com/documentation/en-us/unreal-engine/exposing-gameplay-elements-to-blueprints-visual-scripting-in-unreal-engine](https://dev.epicgames.com/documentation/en-us/unreal-engine/exposing-gameplay-elements-to-blueprints-visual-scripting-in-unreal-engine)
+- **Why it matters**: Covers all the techniques for making C++ code accessible from Blueprints: BlueprintCallable functions, BlueprintReadWrite properties, BlueprintImplementableEvents, and delegates. This is the core pattern of the Claude workflow.
+
+### Data Assets and Data-Driven Design
+- **URL**: [https://dev.epicgames.com/documentation/en-us/unreal-engine/data-registries-in-unreal-engine](https://dev.epicgames.com/documentation/en-us/unreal-engine/data-registries-in-unreal-engine)
+- **Why it matters**: Explains how to use Data Assets, Data Tables, and the Asset Manager for data-driven game design. Essential for managing the Tabletop Quest bestiary, loot tables, and ability definitions.
+
+### Delegates and Events
+- **URL**: [https://dev.epicgames.com/documentation/en-us/unreal-engine/delegates-and-lamba-functions-in-unreal-engine](https://dev.epicgames.com/documentation/en-us/unreal-engine/delegates-and-lamba-functions-in-unreal-engine)
+- **Why it matters**: Detailed reference for all delegate types in UE5 (Dynamic, Multicast, Delegate). Covers declaration, binding, broadcasting, and Blueprint integration. You need this for the event-driven patterns used in combat mode switching.
+
+---
+
+## Build System and Compilation
+
+### Unreal Build Tool Documentation
+- **URL**: [https://dev.epicgames.com/documentation/en-us/unreal-engine/unreal-build-tool-in-unreal-engine](https://dev.epicgames.com/documentation/en-us/unreal-engine/unreal-build-tool-in-unreal-engine)
+- **Why it matters**: When you get build errors, understanding the build system helps you diagnose the problem. Covers module dependencies, Build.cs configuration, and the compilation pipeline.
+
+### Live Coding in UE5
+- **URL**: [https://dev.epicgames.com/documentation/en-us/unreal-engine/using-live-coding-in-unreal-engine](https://dev.epicgames.com/documentation/en-us/unreal-engine/using-live-coding-in-unreal-engine)
+- **Why it matters**: Guide to using Ctrl+Alt+F11 for iterating on C++ without restarting the editor. Explains its limitations (does not handle header changes well) and when to fall back to a full restart.
+
+---
+
+## Claude-Specific Resources
+
+### Writing Effective Prompts for Code Generation
+- **Tip**: Be specific about class names, base classes, function signatures, and UE5 macro specifiers. Include game-specific context (DnD formulas, Tabletop Quest rules) so Claude generates code that fits your game.
+
+### Iterating on Generated Code
+- **Tip**: When Claude's code does not compile, copy the full error message and paste it back to Claude. Include the line number and the surrounding code. Claude can usually fix compilation errors in one round.
+
+### Reviewing Generated Code Checklist
+Before pasting Claude's code:
+1. Does every class have `GENERATED_BODY()`?
+2. Does every Blueprint-facing function have `UFUNCTION(BlueprintCallable)`?
+3. Does every Blueprint-facing property have `UPROPERTY()` with appropriate specifiers?
+4. Does the `.h` file include all necessary headers?
+5. Does the `Build.cs` list all required module dependencies?
+6. Does the `_API` macro match the module name?
+
+---
+
+## Recommended Learning Path
+
+1. Read the **Gameplay Framework Overview** to understand where your systems fit
+2. Skim the **UE5 Coding Standard** to recognize naming conventions
+3. Build the exercises in this module (dice roller, stat calculator, Data Assets)
+4. Reference the **API docs** and **Ben UI's specifier guide** whenever you encounter unfamiliar macros
+5. Watch Alex Forsythe's video for a deeper understanding of the game framework
+6. Move on to Module 04 where you build the combat system using everything from this module

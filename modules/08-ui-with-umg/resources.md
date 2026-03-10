@@ -1,75 +1,84 @@
 # Module 08: Resources - User Interface
 
-## UMG Tutorials
+## Official UE5 Documentation
 
-### Official UMG Documentation
-**https://docs.unrealengine.com/5.0/en-US/umg-ui-designer-for-unreal-engine/**
-The primary reference for Unreal Motion Graphics. Covers Widget Blueprints, the visual designer, anchors, panels, and the full library of built-in widgets (buttons, text, images, progress bars, sliders, etc.). Start here for the foundations.
+### UMG Core
+- **UMG UI Designer Overview**: https://dev.epicgames.com/documentation/en-us/unreal-engine/umg-ui-designer-for-unreal-engine
+- **Widget Blueprint**: https://dev.epicgames.com/documentation/en-us/unreal-engine/widget-blueprints-in-unreal-engine
+- **UMG Widget Types**: https://dev.epicgames.com/documentation/en-us/unreal-engine/widget-type-reference-for-unreal-engine
 
-### UMG Quick Start Guide
-**https://docs.unrealengine.com/5.0/en-US/creating-widgets-in-unreal-engine/**
-A step-by-step walkthrough of creating your first Widget Blueprint, adding it to the viewport, and wiring up basic interactions. Good for getting comfortable with the UMG editor.
+### Layout and Anchors
+- **Anchors**: https://dev.epicgames.com/documentation/en-us/unreal-engine/umg-anchors-in-unreal-engine
+- **Canvas Panel**: https://dev.epicgames.com/documentation/en-us/unreal-engine/using-the-canvas-panel-in-unreal-engine
+- **DPI Scaling**: https://dev.epicgames.com/documentation/en-us/unreal-engine/dpi-scaling-in-unreal-engine
 
-### Ryan Laley's UMG Tutorials (YouTube)
-**https://www.youtube.com/@RyanLaley**
-Practical, hands-on UI tutorials for UE5. His inventory system series and HUD setup videos are directly relevant to Tabletop Quest. Very beginner-friendly.
+### Interaction
+- **Widget Interaction Component**: https://dev.epicgames.com/documentation/en-us/unreal-engine/widget-interaction-component-in-unreal-engine
+- **Drag and Drop**: https://dev.epicgames.com/documentation/en-us/unreal-engine/creating-drag-and-drop-ui-in-unreal-engine
+- **UMG Events**: https://dev.epicgames.com/documentation/en-us/unreal-engine/events-in-umg-for-unreal-engine
 
----
+### Animation
+- **Widget Animations**: https://dev.epicgames.com/documentation/en-us/unreal-engine/animating-umg-widgets-in-unreal-engine
 
-## Free Fantasy UI Asset Packs
+### Materials for UI
+- **UI Material Domain**: https://dev.epicgames.com/documentation/en-us/unreal-engine/creating-ui-materials-in-unreal-engine
 
-### Unreal Marketplace Free Monthly Content
-**https://www.unrealengine.com/marketplace/en-US/free**
-Epic gives away free assets every month. Check regularly for UI kits, icon packs, and widget templates. Past giveaways have included complete RPG UI frameworks with health bars, inventory grids, and menu templates.
+### CommonUI Plugin
+- **CommonUI Overview**: https://dev.epicgames.com/documentation/en-us/unreal-engine/common-ui-plugin-for-advanced-user-interfaces-in-unreal-engine
+- **CommonUI Quickstart**: https://dev.epicgames.com/documentation/en-us/unreal-engine/common-ui-quickstart-guide-for-unreal-engine
 
-### Game-Icons.net
-**https://game-icons.net/**
-Massive library of free game icons (3,000+) in SVG format. Covers weapons, armour, potions, spells, skills, and status effects. Exactly what you need for inventory items and ability icons. All icons are CC BY 3.0 (free to use with attribution).
+## Video Tutorials
 
-### Kenney UI Pack
-**https://kenney.nl/assets/ui-pack-rpg-expansion**
-Free, clean UI elements in a consistent style: buttons, frames, icons, progress bars, and panel backgrounds. Good for prototyping before you commission custom art.
+### UMG Fundamentals
+- **Ryan Laley - UE5 UMG Tutorial Series**: Comprehensive series covering widget creation, anchors, data binding, and animations. Great starting point.
+- **Unreal Engine - UMG Basics | Live Training**: Official Epic walkthrough of UMG core concepts.
 
----
+### Inventory Systems
+- **Ryan Laley - Inventory System in UE5**: Full inventory with equipment, drag-and-drop, and tooltips. Closely matches what Tabletop Quest needs.
+- **Gorka Games - RPG Inventory Tutorial**: RPG-specific inventory with rarity colors, stat comparisons, and paper doll layout.
 
-## Responsive UI Design
+### Dialogue Systems
+- **Mathew Wadstein - Dialogue System Tutorial**: Blueprint-based dialogue with branching, conditions, and typewriter effect.
+- **Unreal Engine - Creating a Dialogue System**: Official approach using Data Tables and UMG.
 
-### UMG Anchors and Layout Documentation
-**https://docs.unrealengine.com/5.0/en-US/using-anchors-in-umg-in-unreal-engine/**
-Deep dive into the anchor system, which is essential for making your UI work across different screen resolutions. Covers stretch anchoring, proportional positioning, and common layout patterns.
+### HUD Design
+- **Ben UI - Game UI Database**: Not a tutorial but a massive collection of game UI screenshots sorted by element type (HP bars, inventories, minimaps). Excellent reference for design: https://www.gameuidatabase.com
 
-### DPI Scaling in UE5
-**https://docs.unrealengine.com/5.0/en-US/dpi-scaling-in-umg-in-unreal-engine/**
-Documentation on how UMG handles different screen densities and resolutions. Important for ensuring your UI looks correct on everything from 1080p monitors to 4K displays.
+### Cooldown Overlays
+- **PrismaticaDev - Radial Cooldown Material**: Step-by-step material creation for the radial sweep cooldown effect. Directly applicable to the ability hotbar.
 
----
+## UI Design References
 
-## Drag and Drop
+### RPG UI Analysis
+- **Divinity: Original Sin 2**: Excellent RPG UI with turn-based initiative tracker, inventory, and dialogue. Study how they handle information density.
+- **Baldur's Gate 3**: Modern take on DnD UI. The action bar, initiative tracker, and dialogue system are highly relevant to Tabletop Quest.
+- **Final Fantasy XIV**: MMO with a highly customizable HUD. Study how they handle ability hotbars, status effects, and party frames.
+- **Skyrim**: Minimalist RPG HUD. Study the compass, quest markers, and how little UI is needed during exploration.
 
-### UMG Drag and Drop Documentation
-**https://docs.unrealengine.com/5.0/en-US/creating-drag-and-drop-ui-in-unreal-engine/**
-Official guide for implementing drag-and-drop interactions in UMG. Covers the OnMouseButtonDown, OnDragDetected, OnDrop, and OnDragCancelled events. Directly applicable to the inventory system.
+### Design Principles
+- **Game UI Database**: https://www.gameuidatabase.com (screenshots of HUDs, inventories, and menus from hundreds of games)
+- **Interface in Game**: https://interfaceingame.com (analysis articles about game UI design decisions)
 
----
+## Tools and Assets
 
-## Design Inspiration
+### Fonts
+- **Google Fonts**: Free fonts including fantasy/medieval styles. "Cinzel" and "MedievalSharp" work well for RPG UIs: https://fonts.google.com
+- **FontSquirrel**: Free commercial-use fonts: https://www.fontsquirrel.com
 
-### Game UI Database
-**https://www.gameuidatabase.com/**
-A searchable archive of UI screenshots from hundreds of games. Filter by genre (RPG) to see how other games handle health bars, inventory, character sheets, and combat UI. Great for finding layout ideas and visual references.
+### Icons
+- **Game-Icons.net**: Huge library of free game icons (swords, shields, potions, spells). SVG format, easy to import: https://game-icons.net
+- **Kenney UI Pack**: Free UI element sprites (buttons, panels, frames) in a clean fantasy style: https://kenney.nl
 
-### Interface In Game
-**https://interfaceingame.com/**
-Curated collection of video game UI designs with analysis. Search for RPG and strategy games to see how professionals solve the same UI challenges you are working on.
+### Color Palettes
+- **Coolors**: Generate color palettes. Useful for rarity tiers and faction colors: https://coolors.co
+- **Accessible Colors**: Check color contrast for accessibility: https://accessible-colors.com
 
----
+## Accessibility Resources
 
-## Community
+- **WCAG Guidelines for Games**: https://www.w3.org/WAI/standards-guidelines/wcag/
+- **Game Accessibility Guidelines**: http://gameaccessibilityguidelines.com
+- **UE5 Colorblind Simulation**: Built into UE5, go to Project Settings > Engine > Accessibility for colorblind preview modes
 
-### r/unrealengine (Reddit)
-**https://www.reddit.com/r/unrealengine/**
-Search for "UMG inventory," "RPG HUD," and "widget blueprint tutorial" for community solutions and architecture patterns.
-
-### Unreal Engine UI Forum
-**https://forums.unrealengine.com/c/development-discussion/ui**
-Dedicated forum section for UI discussions. Good for troubleshooting specific UMG issues and learning from other developers' implementations.
+## UE5 Python Scripting for UI
+- **Python Editor Script Plugin**: https://dev.epicgames.com/documentation/en-us/unreal-engine/scripting-the-unreal-editor-using-python
+- Use Python to batch-import icon textures, generate Data Tables from JSON, and automate asset organization for large item/ability databases
