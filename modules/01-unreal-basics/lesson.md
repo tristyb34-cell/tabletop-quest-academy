@@ -1,242 +1,188 @@
-# Module 01: Getting Started with Unreal Engine 5
+# Module 01: Your First Game World
 
-## Introduction
+## Welcome, Adventurer
 
-Unreal Engine 5 is one of the most powerful game engines in the world, and it is completely free to download and use. Whether you want to build a tabletop RPG experience, a sprawling open world, or a simple interactive scene, UE5 gives you the tools to make it happen. This lesson walks you through everything you need to get started, from installation to packaging your first build.
+You are about to build a game. Not "learn some theory and maybe build something later." Right now. Today. By the end of this lesson, you will have a room in Unreal Engine 5 with walls, a floor, a light, and a fantasy character standing in it. This is the first room of your DnD-inspired RPG, Tabletop Quest.
 
-Think of Unreal Engine as a film studio. It gives you the cameras, the lights, the sets, and even the actors. Your job is to be the director.
+Think of Unreal Engine as a massive film studio. It has cameras, lights, sets, props, and actors. Your job is to be the director. You point, you decide, you make creative calls. And for the technical heavy lifting? That is what Claude (your AI assistant) is for. Claude writes code. You paste it, test it, and steer the creative vision.
+
+Let's get the studio set up.
 
 ---
 
-## Installing Unreal Engine 5
+## Step 1: Install Unreal Engine 5.7
 
-### Step 1: Get the Epic Games Launcher
-
-Before you can use Unreal Engine, you need the Epic Games Launcher. This is your gateway, like an app store specifically for Epic's tools and games.
+Before you can build anything, you need the engine itself. This is a one-time setup that takes about an hour (mostly waiting for downloads).
 
 1. Go to [unrealengine.com](https://www.unrealengine.com/) and click "Download."
-2. Install the Epic Games Launcher on your system.
-3. Create an Epic Games account if you do not already have one.
+2. Install the **Epic Games Launcher**. Think of this as the app store for everything Epic makes.
+3. Create a free Epic Games account if you do not have one.
+4. In the launcher, go to the **Unreal Engine** tab, then **Library**.
+5. Click the **+** button next to "Engine Versions" and select **5.7**.
+6. Click **Install**. The engine is around 50-100 GB, so make sure you have space and a decent internet connection. Go grab a coffee.
 
-### Step 2: Install the Engine
-
-1. Open the Epic Games Launcher and navigate to the "Unreal Engine" tab on the left sidebar.
-2. Click "Library" at the top.
-3. Click the "+" button next to "Engine Versions" to add a new engine installation.
-4. Select the latest UE5 version (e.g., 5.4 or 5.5) and click "Install."
-5. Choose your install directory. The engine is large, typically 50 to 100 GB, so make sure you have space.
-
-### Step 3: Create Your First Project
-
-1. Click "Launch" on your installed engine version.
-2. The Unreal Project Browser will open. Select a template (start with "Blank" or "Third Person").
-3. Choose your project settings: Blueprint or C++, target platform, quality preset.
-4. Name your project and pick a save location.
-5. Click "Create" and wait for the editor to open.
-
-You now have a working Unreal Engine 5 project. Time to explore.
+Once installed, click **Launch** on version 5.7.
 
 ---
 
-## The Editor Layout
+## Step 2: Create the Tabletop Quest Project
 
-When UE5 opens, you will see several panels. Each one has a specific job. Think of the editor like a cockpit: every screen and dial gives you different information about your game world.
+The Project Browser opens. This is where every UE5 journey begins.
 
-### The Viewport
+1. Select the **Third Person** template. This gives you a character you can walk around with immediately, which is far more fun than staring at an empty void.
+2. Choose **Blueprint** as the project type (not C++).
+3. Name it `TabletopQuest`.
+4. Pick a save location you will remember.
+5. Click **Create**.
 
-The viewport is your window into the game world. It is a live 3D view of your level, and it is where you will spend most of your time. You can orbit, pan, and zoom to look at your scene from any angle. When you hit "Play," the viewport becomes the game itself.
-
-### The Outliner (World Outliner)
-
-The outliner is like a backstage roster. It lists every single object (called an "Actor") that exists in your current level. If something is in your world, it shows up here. You can select actors by clicking their names, organize them into folders, and search for specific ones.
-
-### The Details Panel
-
-When you select an actor in the viewport or outliner, the details panel shows you everything about it: its position, rotation, scale, material, physics settings, and more. Think of this as the actor's "character sheet" in a tabletop RPG. Every stat, every property, every configuration lives here.
-
-### The Content Browser
-
-The content browser is your filing cabinet. It shows all the assets in your project: meshes, textures, materials, Blueprints, sounds, and anything else you have imported or created. You drag assets from the content browser into the viewport to place them in your world.
-
-### The Toolbar
-
-The toolbar runs along the top of the editor and contains essential buttons: Save, Play, Build Lighting, and more. The "Play" button (or press Alt+P) is what lets you test your game instantly.
-
-### The Modes Panel
-
-The modes panel gives you access to special placement and editing tools, such as the Landscape tool for terrain, the Foliage tool for scattering trees and grass, and the Geometry tool for simple shapes.
+The editor opens. Welcome to your game studio.
 
 ---
 
-## Navigating the 3D Viewport
+## Step 3: Learn the Viewport (Your Window Into the World)
 
-Moving around in the viewport is essential. If you cannot navigate, you cannot build. Here are the core controls:
+The big 3D view in the centre of the screen is called the **viewport**. This is your window into the game world. Right now it shows the default Third Person level, a simple room with a mannequin.
 
-### Mouse Navigation
+Moving around the viewport works like flying a drone:
 
-- **Right-click + drag**: Look around (rotate the camera).
-- **Right-click + WASD**: Fly through the scene like a first-person game. This is the most common way to move.
-- **Middle mouse button + drag**: Pan the view (slide left/right, up/down).
-- **Scroll wheel**: Zoom in and out.
+- **Right-click + WASD**: Fly through the scene. W = forward, S = back, A = left, D = right.
+- **Right-click + mouse movement**: Look around while flying.
+- **Scroll wheel** (while holding right-click): Speed up or slow down your flight.
+- **Middle mouse + drag**: Pan the camera sideways or up/down.
+- **F key** (with something selected): Snap the camera to focus on that object. Extremely useful when you lose something in a big scene.
 
-### Speed Control
-
-While holding right-click and using WASD, scroll the mouse wheel to adjust your movement speed. In large levels, you will want to move fast. In detailed areas, slow down.
-
-### Focus on an Object
-
-Select an actor and press **F** to focus the camera on it. This centers the viewport on that object and is incredibly useful when you lose track of something in a big scene.
-
-### Orthographic Views
-
-Press Alt + J/K/H to switch to top, front, and side orthographic views. These flat views are helpful for precise alignment, like looking at a blueprint drawing of your level.
+Spend two minutes just flying around. Get comfortable. This is how you will navigate every level you ever build.
 
 ---
 
-## Placing and Transforming Actors
+## Step 4: What Are Actors?
 
-An actor is anything that exists in your level. A light is an actor. A static mesh (3D model) is an actor. A camera is an actor. Think of actors as props on a stage: they are the things that make up your scene.
+Everything you see in the viewport is an **Actor**. The floor? Actor. The light? Actor. The mannequin? Actor. That weird sphere in the corner? Also an actor.
 
-### Placing Actors
+Think of Actors like chess pieces on a board. Each one has a position, a role, and properties. Some are visible (like a treasure chest). Some are invisible (like a trigger zone that detects when a player walks through a doorway). But they are all Actors, and they all live in the **World Outliner**, the panel on the right that lists every Actor in your level like a backstage roster.
 
-There are several ways to add actors to your level:
-
-1. **Drag from Content Browser**: Find a mesh or Blueprint in your content browser and drag it into the viewport.
-2. **Place Actors Panel**: Use the "Place Actors" panel (accessed via the toolbar or Window menu) to add lights, cameras, volumes, and basic shapes.
-3. **Right-click in Viewport**: Right-click in the viewport and select "Place Actor" for common types.
-
-### The Transform Tools
-
-Once an actor is in your level, you will want to move, rotate, and scale it. These three operations are called transforms.
-
-- **W key (Translate/Move)**: Activates the move tool. Colored arrows appear on the actor: red for X, green for Y, blue for Z. Drag an arrow to move the actor along that axis.
-- **E key (Rotate)**: Activates the rotation tool. Colored rings appear. Drag a ring to spin the actor around that axis.
-- **R key (Scale)**: Activates the scale tool. Drag the handles to make the actor bigger or smaller. Drag the center cube to scale uniformly on all axes.
-
-### Snapping
-
-Press and hold Ctrl while transforming to snap to a grid. This is useful for aligning walls, floors, and other structured geometry. You can adjust the snap increment in the toolbar.
-
-### Pivot Points
-
-The pivot point is the origin around which an actor rotates and scales. By default, it is at the actor's center (or its defined origin). You can temporarily adjust it by holding Alt + middle mouse button.
+Click on any Actor name in the World Outliner. The **Details Panel** below it shows all of that Actor's properties: its position, rotation, scale, materials, and settings. This is the Actor's character sheet, just like in a tabletop RPG.
 
 ---
 
-## The Concept of Levels and Maps
+## Step 5: The Python Console (Your Secret Weapon)
 
-A "level" in Unreal Engine is a single map file. It contains all the actors, lighting, and settings for one area of your game. Think of a level as one chapter in a book, or one room in a board game.
+Here is where things get interesting. Unreal Engine has a built-in Python console. This lets you run scripts that create, move, and modify Actors automatically, instead of dragging things around by hand.
 
-### Working with Levels
+Why does this matter? Because Claude can write Python scripts for you. You describe what you want. Claude writes the script. You paste it into the console. Things appear in your world. It is like having a construction crew that builds whatever you describe.
 
-- You can have one level or hundreds. Large games use "level streaming" to load and unload levels dynamically as the player moves through the world.
-- Each level is saved as a `.umap` file in your content browser.
-- The "Persistent Level" is the base level that is always loaded. Sub-levels can be streamed in and out.
+To open the Python console:
 
-### World Partition (UE5 Feature)
+1. Go to **Edit > Editor Preferences**.
+2. Search for "Python" and make sure the **Python Editor Script Plugin** is enabled. Restart the editor if prompted.
+3. Go to **Window > Developer Tools > Output Log**.
+4. At the bottom of the Output Log, change the dropdown from "Cmd" to **"Python"**.
 
-UE5 introduced World Partition, which automatically divides your world into a grid and streams cells in and out based on the player's position. This is how massive open worlds work without loading screens.
-
-### The Level Blueprint
-
-Every level has its own Blueprint (visual script) for level-specific logic. This is where you might script a cutscene trigger, open a door when the player enters an area, or set up a gameplay sequence unique to that map.
+Now you have a Python input field. Let's use it.
 
 ---
 
-## Basic Landscape Creation
+## Step 6: Your First Python Script (Build a Room)
 
-Landscapes are how you create terrain: rolling hills, mountains, valleys, and flat plains. Think of the landscape tool as a digital sandbox where you sculpt the ground itself.
+Ask Claude to write a script that creates a simple room. Here is what a basic room-creation script looks like (you would get this from Claude, but here is a simplified example so you understand the concept):
 
-### Creating a Landscape
+```python
+import unreal
 
-1. Go to the Modes panel and select "Landscape."
-2. In the "Manage" tab, click "Create" to generate a new landscape.
-3. Set the size (number of sections and quads per section). Start small, like 8x8 sections, for learning.
-4. Click "Create" and a flat green plane will appear in your level.
+# Get the editor subsystem for spawning actors
+editor = unreal.EditorLevelLibrary
 
-### Sculpting
+# Create a floor (scaled cube)
+floor = editor.spawn_actor_from_class(unreal.StaticMeshActor, unreal.Vector(0, 0, 0))
+floor.set_actor_label("Floor")
+floor.static_mesh_component.set_static_mesh(
+    unreal.load_asset("/Engine/BasicShapes/Cube")
+)
+floor.set_actor_scale3d(unreal.Vector(10, 10, 0.1))
 
-Switch to the "Sculpt" tab in the landscape tool. Here you can:
+# Create four walls
+wall_positions = [
+    (unreal.Vector(0, 500, 250), unreal.Vector(10, 0.1, 5)),
+    (unreal.Vector(0, -500, 250), unreal.Vector(10, 0.1, 5)),
+    (unreal.Vector(500, 0, 250), unreal.Vector(0.1, 10, 5)),
+    (unreal.Vector(-500, 0, 250), unreal.Vector(0.1, 10, 5)),
+]
 
-- **Sculpt**: Raise or lower terrain by painting on it with your mouse. Left-click raises, Shift + left-click lowers.
-- **Smooth**: Blend sharp edges into gentle slopes.
-- **Flatten**: Force terrain to a specific height.
-- **Erosion/Noise**: Add natural-looking variation.
+for i, (pos, scale) in enumerate(wall_positions):
+    wall = editor.spawn_actor_from_class(unreal.StaticMeshActor, pos)
+    wall.set_actor_label(f"Wall_{i+1}")
+    wall.static_mesh_component.set_static_mesh(
+        unreal.load_asset("/Engine/BasicShapes/Cube")
+    )
+    wall.set_actor_scale3d(scale)
 
-Adjust your brush size and strength to control how much terrain you affect with each stroke.
+# Add a point light
+light = editor.spawn_actor_from_class(unreal.PointLight, unreal.Vector(0, 0, 400))
+light.set_actor_label("RoomLight")
+light.point_light_component.set_intensity(5000)
 
-### Painting Materials
+print("Room created!")
+```
 
-Switch to the "Paint" tab to apply different materials (grass, dirt, rock) to your landscape. You will need a landscape material with multiple layers set up. For beginners, use the starter content materials or download free landscape materials from the Unreal Marketplace.
+Paste this into the Python console and press Enter. A room appears in your viewport. A floor, four walls, and a light. You just built your first game environment with code.
 
----
-
-## Lighting Basics
-
-Lighting makes or breaks the look of your game. Even a simple scene looks stunning with good lighting, and even a beautiful scene looks flat without it.
-
-### Directional Light
-
-The directional light simulates the sun. It casts parallel rays across your entire level, as if the light source is infinitely far away (which the sun effectively is). Every outdoor scene needs one.
-
-- Rotate the directional light to change the time of day. Pointing it straight down simulates noon. Angling it low simulates sunrise or sunset.
-- Adjust the intensity and color to set the mood. Warm orange for golden hour, cool blue for overcast.
-
-### Sky Light
-
-The sky light captures the ambient light from your sky and applies it as soft, indirect illumination across your scene. Without it, shadows are pitch black. With it, everything gets a gentle fill light, just like how real-world objects in shadow are still visible because light bounces off the sky and surroundings.
-
-### Sky Atmosphere and Volumetric Clouds
-
-UE5 includes a Sky Atmosphere actor that simulates realistic atmospheric scattering (the reason the sky is blue and sunsets are orange). Pair it with Volumetric Clouds for photorealistic skies.
-
-### Lumen (UE5 Global Illumination)
-
-Lumen is UE5's real-time global illumination system. It simulates how light bounces off surfaces and illuminates other surfaces. A red wall will cast a subtle red glow on a nearby white floor. This happens automatically in UE5 with Lumen enabled, and it is one of the engine's biggest visual upgrades.
-
-### Post Process Volume
-
-A post process volume lets you tweak the final look of your scene: bloom, exposure, color grading, motion blur, depth of field, and more. Place one in your level and set it to "Infinite Extent (Unbound)" to affect the entire level, or leave it bounded to affect only a specific area.
+The shapes are plain white cubes right now. That is fine. We will make everything beautiful in Module 05. Right now, focus on the magic: you described a room, and it appeared.
 
 ---
 
-## Packaging a Build
+## Step 7: Download a Fantasy Asset Pack from Fab
 
-When you are ready to share your project or test it outside the editor, you "package" it into a standalone executable.
+Your room needs some personality. Epic's **Fab** marketplace (formerly the Unreal Marketplace) has thousands of free asset packs.
 
-### Steps to Package
+1. In the Epic Games Launcher, go to the **Fab** tab (or visit [fab.com](https://www.fab.com/)).
+2. Search for free fantasy assets. Good starter packs include:
+   - "Infinity Blade" assets (free, high-quality fantasy props)
+   - "Stylized Fantasy Provencal" or similar free environment packs
+   - Any free medieval/dungeon asset pack that catches your eye
+3. Click **Add to My Library**, then in UE5, go to your **Content Drawer** and click **Add > Add Fab Content** to import it into your project.
 
-1. Go to **Platforms** in the top menu bar (or File > Package Project in older versions).
-2. Select your target platform (Windows, Mac, Linux, etc.).
-3. Choose a folder for the output.
-4. Wait for the build process to complete. This can take a while, especially the first time, because the engine compiles shaders, cooks assets, and optimizes everything.
-
-### Before You Package
-
-- **Build Lighting**: If you are using baked lighting (not Lumen), build your lighting first via the toolbar.
-- **Set Your Default Map**: In Project Settings > Maps & Modes, set the "Game Default Map" to your main level. Otherwise the packaged game might open to a blank screen.
-- **Check Project Settings**: Make sure your project name, description, and icon are set under Project Settings > Project > Description.
-- **Test with "Launch"**: Before doing a full package, use the "Launch" button for a quick standalone test. This is faster and helps catch issues early.
-
-### Common Packaging Errors
-
-- **Missing cooked content**: Make sure all referenced assets are saved and inside your project folder.
-- **Shader compilation failures**: Usually caused by broken materials. Check the output log.
-- **Blueprint compile errors**: Any Blueprint with errors will fail packaging. Fix all Blueprint warnings first.
+Browse through the assets. You now have swords, torches, barrels, stone walls, and all sorts of fantasy props ready to place.
 
 ---
 
-## Summary
+## Step 8: Place a Character Model Using Python
 
-In this lesson you learned:
+Let's put a character in your room. Once you have imported a fantasy asset pack, you can use Python to place any mesh from it. Ask Claude to write a placement script, or try something like this:
 
-- How to install UE5 and create a project.
-- The five main editor panels and what each one does.
-- How to navigate the 3D viewport with mouse and keyboard.
-- How to place actors and transform them with translate, rotate, and scale.
-- What levels are and how they organize your game world.
-- How to create and sculpt a landscape.
-- The fundamentals of lighting: directional light, sky light, Lumen, and post processing.
-- How to package your project into a standalone build.
+```python
+import unreal
 
-You now have the foundation. Everything else in Unreal Engine builds on these basics. In the next module, you will learn Blueprints, the visual scripting system that brings your game to life.
+editor = unreal.EditorLevelLibrary
+
+# Replace the path below with the actual path to a mesh in your asset pack
+# You can find it by right-clicking the asset in Content Browser > Copy Reference
+character = editor.spawn_actor_from_class(
+    unreal.StaticMeshActor,
+    unreal.Vector(0, 0, 10)
+)
+character.set_actor_label("HeroCharacter")
+character.static_mesh_component.set_static_mesh(
+    unreal.load_asset("/Game/InfinityBladeWarriors/Meshes/SM_CharacterModel")
+)
+
+print("Character placed!")
+```
+
+The exact asset path depends on what you downloaded. Right-click any asset in the Content Browser and select **Copy Reference** to get its path.
+
+You now have a room with a character standing in it. This is the seed of your game world.
+
+---
+
+## What You Built Today
+
+- Installed UE5.7 and created the Tabletop Quest project
+- Learned to navigate the viewport like a drone pilot
+- Understood that everything in your world is an Actor (like chess pieces on a board)
+- Used the Python console to create a room with code
+- Downloaded fantasy assets from Fab
+- Placed a character model in your first room
+
+This is not a tutorial exercise. This is the beginning of your game. Every module from here forward adds to this project. The room you built today will become a dungeon. The character will become a playable hero. The light will become a flickering torch.
+
+Next up: Blueprints, where you make things actually happen. Doors that open. Chests that give you gold. Fire that hurts.

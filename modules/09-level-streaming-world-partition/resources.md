@@ -1,44 +1,87 @@
-# Module 9: Resources - Level Streaming and World Partition
+# Module 09: Resources - The Open World
 
-## Official UE5 Documentation
+## World Partition
 
-- **Level Streaming Overview**: https://dev.epicgames.com/documentation/en-us/unreal-engine/level-streaming-in-unreal-engine
-- **Level Streaming How-To**: https://dev.epicgames.com/documentation/en-us/unreal-engine/level-streaming-how-to-in-unreal-engine
-- **World Partition**: https://dev.epicgames.com/documentation/en-us/unreal-engine/world-partition-in-unreal-engine
-- **World Partition Setup Guide**: https://dev.epicgames.com/documentation/en-us/unreal-engine/converting-a-level-to-use-world-partition-in-unreal-engine
-- **One File Per Actor (OFPA)**: https://dev.epicgames.com/documentation/en-us/unreal-engine/one-file-per-actor-in-unreal-engine
-- **Data Layers**: https://dev.epicgames.com/documentation/en-us/unreal-engine/data-layers-in-unreal-engine
-- **HLOD Overview**: https://dev.epicgames.com/documentation/en-us/unreal-engine/hierarchical-level-of-detail-in-unreal-engine
-- **Level Streaming Volumes**: https://dev.epicgames.com/documentation/en-us/unreal-engine/level-streaming-volumes-in-unreal-engine
+### Official World Partition Documentation
+**https://docs.unrealengine.com/5.0/en-US/world-partition-in-unreal-engine/**
+The primary reference for World Partition. Covers how the grid system works, cell sizes, loading ranges, data layers, and the One File Per Actor (OFPA) system. Start here for understanding the architecture.
 
-## Video Tutorials
+### World Partition Quick Start
+**https://docs.unrealengine.com/5.0/en-US/world-partition---quick-start-guide-in-unreal-engine/**
+A hands-on guide that walks through enabling World Partition on a level, configuring cell sizes, and testing streaming behaviour. Good for getting started quickly.
 
-- **Unreal Engine Official, World Partition Deep Dive**: Search "Unreal Engine World Partition" on YouTube. Epic's official talks explain the system architecture and best practices in detail.
-- **Ryan Laley, Level Streaming Tutorial**: Search "Ryan Laley UE5 level streaming" on YouTube. Clear, step-by-step walkthrough of sub-levels and streaming volumes.
-- **Gorka Games, Open World Streaming**: Search "Gorka Games UE5 World Partition" on YouTube. Practical setup guide for open-world projects.
-- **Mathew Wadstein, WTF Is Level Streaming**: Search "Mathew Wadstein level streaming" on YouTube for a focused breakdown of the streaming system's Blueprint nodes and configuration options.
-- **Unreal Fest Talks**: Search "Unreal Fest World Partition" for conference presentations from Epic engineers. These go deep into the technical implementation and real-world usage at scale.
+---
 
-## Community Resources
+## Landscape Tutorials
 
-- **Unreal Engine Forums (Level Design)**: https://forums.unrealengine.com/ - search for "world partition" or "level streaming" for community discussions, troubleshooting, and project showcases
-- **r/unrealengine**: https://www.reddit.com/r/unrealengine/ - frequent posts about streaming setup, World Partition issues, and HLOD configuration
-- **UE5 Discord Communities**: Several active Discord servers (Unreal Slackers, Unreal Engine Community) have channels dedicated to level design and streaming architecture
+### Landscape Tool Documentation
+**https://docs.unrealengine.com/5.0/en-US/landscape-outdoor-terrain-in-unreal-engine/**
+Full reference for the Landscape system: creation, sculpting, painting, materials, foliage, and grass types. Covers every tool and setting.
 
-## Related Topics
+### Landscape Quick Start Guide
+**https://docs.unrealengine.com/5.0/en-US/landscape-quick-start-guide-in-unreal-engine/**
+Step-by-step tutorial for creating your first landscape, sculpting terrain, and painting materials. A great practical introduction.
 
-- **Navigation and Streaming**: https://dev.epicgames.com/documentation/en-us/unreal-engine/navigation-system-in-unreal-engine - NavMesh must be configured to work with streaming levels. Each sub-level can have its own NavMesh data that loads with it.
-- **Render Targets**: https://dev.epicgames.com/documentation/en-us/unreal-engine/render-targets-in-unreal-engine - used for the fog of war system and tabletop camera capture
-- **Performance Profiling**: https://dev.epicgames.com/documentation/en-us/unreal-engine/performance-and-profiling-in-unreal-engine - use stat commands (stat levels, stat memory, stat streaming) to monitor streaming performance
+### Unreal Sensei Landscape Tutorial (YouTube)
+**https://www.youtube.com/@UnrealSensei**
+Excellent landscape tutorials showing how to create beautiful terrain using Megascans materials and the Landscape tool. The "Create a Beautiful Landscape" video is particularly relevant for Tabletop Quest's open world.
 
-## Case Studies and Examples
+---
 
-- **Fortnite's Open World**: Epic uses World Partition in Fortnite. Search "Fortnite World Partition GDC" for technical talks about their streaming architecture at massive scale.
-- **The Matrix Awakens Demo**: Epic's tech demo for UE5 uses World Partition to stream a full city. Analyzing its level structure (available as a free download) teaches how professionals set up streaming for dense environments.
-- **Lyra Starter Game**: Epic's official starter project includes examples of level management. Available on the Unreal Marketplace (free). Useful as a reference for how Epic structures their own projects.
+## Megascans and Materials
 
-## Fog of War Resources
+### Quixel Bridge in UE5
+**https://docs.unrealengine.com/5.0/en-US/quixel-bridge-plugin-for-unreal-engine/**
+Documentation for accessing the Megascans library directly from within UE5. Browse thousands of free photorealistic materials (grass, rock, soil, snow) and 3D assets (trees, rocks, debris). All Megascans content is free for Unreal Engine projects.
 
-- **Render Target Based Fog of War**: Search "UE5 fog of war render target" on YouTube for community tutorials that use the same technique described in this module: painting to a render target and using it as a material mask.
-- **Real-Time Strategy Fog of War**: Search "UE5 RTS fog of war" for implementations from the real-time strategy game community, which frequently deal with exploration-based visibility.
-- **Procedural Texture Painting**: https://dev.epicgames.com/documentation/en-us/unreal-engine/draw-material-to-render-target-in-unreal-engine - the Blueprint node used to paint onto render targets at runtime, essential for the fog of war texture updates.
+### Landscape Material Setup Guide
+**https://docs.unrealengine.com/5.0/en-US/landscape-materials-in-unreal-engine/**
+How to create Layer Blend materials for landscapes, configure multiple layers, and paint different surfaces onto terrain. Essential for making your terrain look realistic with varied ground cover.
+
+---
+
+## Foliage and Procedural Placement
+
+### Foliage Tool Documentation
+**https://docs.unrealengine.com/5.0/en-US/foliage-tool-in-unreal-engine/**
+Reference for painting foliage (trees, bushes, grass) onto landscapes. Covers density, scale variation, random rotation, slope constraints, and performance optimization.
+
+### Procedural Foliage Spawner
+**https://docs.unrealengine.com/5.0/en-US/procedural-foliage-tool-in-unreal-engine/**
+UE5's built-in tool for procedurally generating forests and vegetation. An alternative to Python scripts for large-scale foliage placement. Supports ecosystem simulation (trees block light, affecting undergrowth density).
+
+---
+
+## Level Streaming
+
+### Level Streaming Documentation
+**https://docs.unrealengine.com/5.0/en-US/level-streaming-in-unreal-engine/**
+How to create sub-levels, set up Level Streaming Volumes, and configure load/unload behaviour. Covers both volume-based and Blueprint-based streaming triggers.
+
+---
+
+## Free Assets for World Building
+
+### Quixel Megascans (Free for UE5)
+**https://quixel.com/megascans/**
+Thousands of photorealistic 3D scans: rocks, trees, ground surfaces, debris, vegetation. All free when used with Unreal Engine. This is your primary source for terrain materials and environmental props.
+
+### Unreal Marketplace Free Monthly Content
+**https://www.unrealengine.com/marketplace/en-US/free**
+Monthly free asset packs that often include environment sets, building kits, and foliage packs. Check regularly and grab anything useful for world building.
+
+### Kenney (Free Game Assets)
+**https://kenney.nl/assets**
+Free low-poly 3D assets including buildings, nature, and props. Good for prototyping town layouts before replacing with higher-quality assets.
+
+---
+
+## Community
+
+### r/unrealengine (Reddit)
+**https://www.reddit.com/r/unrealengine/**
+Search for "World Partition performance," "landscape tutorial," and "open world UE5" for community discussions, performance tips, and architecture patterns.
+
+### Unreal Engine World Building Forum
+**https://forums.unrealengine.com/c/development-discussion/world-creation**
+Discussions about large-scale level design, terrain creation, and open world performance. Good for troubleshooting streaming issues and learning optimization techniques.

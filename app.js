@@ -78,16 +78,16 @@ function initFirebase() {
 
 // ---- Data constants ----
 const MODULES = [
-  { id: '01', dir: '01-unreal-basics', name: 'Unreal Basics', desc: 'Editor layout, viewport navigation, actors, landscapes, packaging builds.', color: 'var(--c1)', phase: 'Phase 1' },
-  { id: '02', dir: '02-blueprints', name: 'Blueprints', desc: 'Visual scripting, events, variables, functions, interactive objects.', color: 'var(--c2)', phase: 'Phase 1' },
-  { id: '03', dir: '03-cpp-in-unreal', name: 'C++ in Unreal', desc: 'UPROPERTY, UFUNCTION, components, delegates, memory management.', color: 'var(--c3)', phase: 'Phase 1' },
-  { id: '04', dir: '04-gameplay-ability-system', name: 'Gameplay Ability System', desc: 'The combat framework: abilities, effects, tags, attributes.', color: 'var(--c4)', phase: 'Phase 1' },
-  { id: '05', dir: '05-materials-and-rendering', name: 'Materials & Rendering', desc: 'PBR, material instances, render-to-texture, Nanite, Lumen.', color: 'var(--c5)', phase: 'Phase 2' },
-  { id: '06', dir: '06-cameras-and-input', name: 'Cameras & Input', desc: 'Spring arms, camera modes, Enhanced Input, camera director.', color: 'var(--c6)', phase: 'Phase 2' },
-  { id: '07', dir: '07-ai-behavior-trees', name: 'AI & Behavior Trees', desc: 'AI controllers, blackboards, tasks, EQS, party AI.', color: 'var(--c7)', phase: 'Phase 4' },
-  { id: '08', dir: '08-ui-with-umg', name: 'UI with UMG', desc: 'Widget Blueprints, HUDs, menus, data binding, animations.', color: 'var(--c8)', phase: 'Phase 3' },
-  { id: '09', dir: '09-level-streaming-world-partition', name: 'World Partition', desc: 'Level streaming, sub-levels, LODs, fog of war.', color: 'var(--c9)', phase: 'Phase 2' },
-  { id: '10', dir: '10-audio-systems', name: 'Audio Systems', desc: 'Sound Cues, attenuation, MetaSounds, crossfades, dynamic music.', color: 'var(--c10)', phase: 'Phase 6' },
+  { id: '01', dir: '01-unreal-basics', name: 'Your First Game World', desc: 'Set up UE5, build your first room, place objects, and get a character standing in it.', color: 'var(--c1)', phase: 'Phase 1' },
+  { id: '02', dir: '02-blueprints', name: 'Blueprints: Making Things Happen', desc: 'Visual scripting to make doors open, chests unlock, and torches light up.', color: 'var(--c2)', phase: 'Phase 1' },
+  { id: '03', dir: '03-cpp-in-unreal', name: "Claude's C++ Plugins", desc: 'How Claude writes C++ plugins you paste in. Expose functions to Blueprints.', color: 'var(--c3)', phase: 'Phase 2' },
+  { id: '04', dir: '04-gameplay-ability-system', name: 'Combat System', desc: 'Turn-based and real-time combat, action queues, damage, abilities.', color: 'var(--c4)', phase: 'Phase 2' },
+  { id: '05', dir: '05-materials-and-rendering', name: 'Making It Beautiful', desc: 'Lumen lighting, Nanite meshes, Megascans, materials, post-processing.', color: 'var(--c5)', phase: 'Phase 3' },
+  { id: '06', dir: '06-cameras-and-input', name: 'The Camera and Controls', desc: 'Third-person camera, tabletop zoom, Enhanced Input, camera transitions.', color: 'var(--c6)', phase: 'Phase 2' },
+  { id: '07', dir: '07-ai-behavior-trees', name: 'Enemy AI', desc: 'Goblins that patrol, skeletons that chase, dragon bosses with phases.', color: 'var(--c7)', phase: 'Phase 3' },
+  { id: '08', dir: '08-ui-with-umg', name: 'User Interface', desc: 'Health bars, inventory, ability hotbar, dialogue, minimap, menus.', color: 'var(--c8)', phase: 'Phase 3' },
+  { id: '09', dir: '09-level-streaming-world-partition', name: 'The Open World', desc: 'World Partition, towns, dungeons, wilderness. Big maps that run well.', color: 'var(--c9)', phase: 'Phase 4' },
+  { id: '10', dir: '10-audio-systems', name: 'Sound and Music', desc: 'Combat music, ambient sounds, footsteps, spatial audio, MetaSounds.', color: 'var(--c10)', phase: 'Phase 4' },
 ];
 
 const TABS = ['lesson', 'exercises', 'quiz', 'resources'];
@@ -107,13 +107,12 @@ const BIBLE = [
 ];
 
 const PHASES = [
-  { name: 'Phase 0: Learning', desc: 'UE5 fundamentals, Blueprints, C++, GAS.', time: '2-3 months', active: true, difficulty: 'easy' },
-  { name: 'Phase 1: Core Combat', desc: 'Dungeon room, Warrior class, turn-based combat, dice rolls.', time: '4-6 months', difficulty: 'medium' },
-  { name: 'Phase 2: The Tabletop', desc: 'Tabletop environment, zoom transition, connected rooms.', time: '3-4 months', difficulty: 'hard' },
-  { name: 'Phase 3: RPG Systems', desc: 'All stats/classes/races, leveling, inventory, quests.', time: '3-4 months', difficulty: 'medium' },
-  { name: 'Phase 4: Real-Time Combat', desc: 'Action combat, party AI, mode switching, boss fights.', time: '4-5 months', difficulty: 'hard' },
-  { name: 'Phase 5: AI Dungeon Master', desc: 'Ollama integration, narrative, encounters, quest gen.', time: '2-3 months', difficulty: 'medium' },
-  { name: 'Phase 6: Polish & Content', desc: 'Campaign chapter, final art, audio, tutorial, local co-op.', time: '3-4 months', difficulty: 'medium' },
+  { name: 'Phase 1: First Room', desc: 'UE5 setup, first game world, Blueprints, basic interactions.', time: '1-2 months', active: true, difficulty: 'easy' },
+  { name: 'Phase 2: Core Systems', desc: 'Combat prototype, C++ plugins via Claude, camera and controls.', time: '2-3 months', difficulty: 'medium' },
+  { name: 'Phase 3: Game Feel', desc: 'Materials, lighting, enemy AI, UI/HUD, making it look and play great.', time: '3-4 months', difficulty: 'medium' },
+  { name: 'Phase 4: The World', desc: 'Open world map, World Partition, audio, towns and dungeons.', time: '3-4 months', difficulty: 'hard' },
+  { name: 'Phase 5: RPG Depth', desc: 'All classes, leveling, inventory, quests, tabletop zoom transition.', time: '2-3 months', difficulty: 'hard' },
+  { name: 'Phase 6: AI DM + Polish', desc: 'Ollama AI Dungeon Master, campaign, final art, co-op, launch prep.', time: '2-3 months', difficulty: 'medium' },
 ];
 
 // ---- State ----

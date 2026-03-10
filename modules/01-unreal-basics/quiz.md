@@ -1,117 +1,62 @@
 # Module 01: Quiz
 
-Test your knowledge of Unreal Engine 5 basics. Try to answer each question before checking the answer key at the bottom.
+Test your understanding of what you learned in this module. Try to answer each question before checking the answer key at the bottom.
 
 ---
 
 ### Question 1 (Multiple Choice)
 
-Which editor panel shows a list of every actor currently in your level?
+In Unreal Engine, what is an "Actor"?
 
-A) Content Browser
-B) Details Panel
-C) World Outliner
-D) Modes Panel
-
----
-
-### Question 2 (Multiple Choice)
-
-What keyboard shortcut activates the Rotate tool in the viewport?
-
-A) W
-B) E
-C) R
-D) T
+A) A 3D character model with animations
+B) Any object that exists in a level, whether visible or invisible
+C) A type of Blueprint script
+D) A special lighting component
 
 ---
 
-### Question 3 (Short Answer)
+### Question 2 (Short Answer)
 
-You are flying through the viewport using right-click + WASD, but you are moving too slowly to cross a large landscape. How do you increase your movement speed without releasing the mouse button?
-
----
-
-### Question 4 (Multiple Choice)
-
-What does the Content Browser contain?
-
-A) A list of every actor placed in the current level
-B) All assets in your project, such as meshes, textures, materials, and Blueprints
-C) The properties and settings of the currently selected actor
-D) Tools for sculpting terrain and placing foliage
+You are flying through the viewport using right-click + WASD, but you are moving too slowly. How do you speed up without releasing the mouse?
 
 ---
 
-### Question 5 (Short Answer)
+### Question 3 (Multiple Choice)
 
-Explain the difference between a Directional Light and a Sky Light. When would you use each one?
+What does the Python console in UE5 allow you to do?
 
----
-
-### Question 6 (Multiple Choice)
-
-What does pressing the F key do when you have an actor selected in the viewport?
-
-A) Deletes the selected actor
-B) Focuses the camera on the selected actor
-C) Toggles fullscreen mode
-D) Freezes the actor in place
+A) Write gameplay code that runs during the game
+B) Automate editor tasks like creating and placing Actors
+C) Compile C++ source files
+D) Connect to online multiplayer servers
 
 ---
 
-### Question 7 (Short Answer)
+### Question 4 (Short Answer)
 
-You packaged your project, but when you run the executable it opens to a black screen. What is the most likely cause, and how do you fix it?
-
----
-
-### Question 8 (Multiple Choice)
-
-In UE5, what is "Lumen"?
-
-A) A tool for creating landscape terrain
-B) The real-time global illumination and reflection system
-C) A type of material shader
-D) The Blueprint compilation system
+You want to place a mesh from a downloaded asset pack using Python. How do you find the correct asset path to use in your script?
 
 ---
 
-### Question 9 (Short Answer)
+### Question 5 (Multiple Choice)
 
-What is the difference between a "level" and the "Content Browser"? In other words, why are they not the same thing?
+Which panel in the editor shows the position, rotation, scale, and other properties of a selected Actor?
 
----
-
-### Question 10 (Multiple Choice)
-
-Which of the following is NOT a standard sculpting operation in the Landscape tool?
-
-A) Sculpt (raise/lower terrain)
-B) Smooth
-C) Flatten
-D) Extrude
+A) World Outliner
+B) Content Browser
+C) Details Panel
+D) Output Log
 
 ---
 
 ## Answer Key
 
-**Question 1**: C) World Outliner. The outliner lists all actors in the current level. The Content Browser shows project assets, not placed actors.
+**Question 1**: B) Any object that exists in a level, whether visible or invisible. Actors include meshes, lights, cameras, trigger volumes, and more. Think of them as chess pieces on a board: every piece is an Actor regardless of its role.
 
-**Question 2**: B) E. The three transform shortcuts are W (translate/move), E (rotate), and R (scale).
+**Question 2**: Scroll the mouse wheel while holding right-click. This adjusts the camera flight speed without interrupting your navigation.
 
-**Question 3**: Scroll the mouse wheel while holding right-click. This adjusts the camera movement speed without interrupting your fly-through navigation.
+**Question 3**: B) Automate editor tasks like creating and placing Actors. The Python console runs scripts in the editor environment, letting you spawn Actors, modify properties, and automate repetitive tasks. It does not run during gameplay.
 
-**Question 4**: B) All assets in your project. The Content Browser is your project's file manager for meshes, textures, Blueprints, and every other type of asset.
+**Question 4**: Right-click the asset in the Content Browser and select "Copy Reference." This copies the full path (like `/Game/AssetPack/Meshes/SM_Table`) that you can paste directly into your Python script.
 
-**Question 5**: A Directional Light simulates the sun. It casts parallel light rays across the entire level and is used for primary outdoor illumination. A Sky Light captures ambient light from the sky (and surroundings) and provides soft, indirect fill lighting so that shadowed areas are not completely black. You typically use both together in an outdoor scene: the directional light for the main sun, and the sky light for ambient fill.
-
-**Question 6**: B) Focuses the camera on the selected actor. This centers the viewport on the object, which is very helpful for finding and inspecting specific actors.
-
-**Question 7**: The most likely cause is that the "Game Default Map" is not set in Project Settings. Go to Edit > Project Settings > Maps & Modes and set the "Game Default Map" to your main level. Then re-package.
-
-**Question 8**: B) The real-time global illumination and reflection system. Lumen simulates realistic light bouncing and reflections without needing to bake lightmaps.
-
-**Question 9**: A level (also called a map) is a specific scene or world that contains placed actors, lighting, and gameplay logic. The Content Browser is a file manager that holds all the raw assets (meshes, textures, Blueprints, sounds) in your entire project. Assets in the Content Browser can be used across multiple levels. A level references assets from the Content Browser, but the Content Browser itself is not a level.
-
-**Question 10**: D) Extrude. The Landscape tool includes Sculpt, Smooth, Flatten, Erosion, Noise, and other terrain operations, but "Extrude" is a 3D modeling term, not a landscape sculpting operation.
+**Question 5**: C) Details Panel. When you select any Actor, the Details Panel shows all of its properties. The World Outliner lists Actors by name, and the Content Browser shows project assets, but the Details Panel is where you inspect and edit an individual Actor's settings.

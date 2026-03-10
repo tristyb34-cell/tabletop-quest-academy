@@ -1,350 +1,183 @@
-# Module 05: Materials, Rendering, and the Tabletop Transition Effect
+# Module 05: Making It Beautiful
 
-## Why This Module Matters
+## From Prototype to Wow
 
-Your game lives in two visual worlds. In one, players see painted miniatures standing on a physical tabletop with dice, character sheets, and a DM screen. In the other, those miniatures come alive as fully realised 3D characters in a rich fantasy environment. The bridge between these two worlds is built entirely with materials, rendering techniques, and clever camera tricks.
+Your dungeon room works. Combat works. Doors open, chests give gold, goblins die. But right now, everything looks like grey cubes and placeholder meshes under flat lighting. That changes today.
 
-Think of materials as the skin of every object in your game. A wooden table, a steel sword, a glowing magical rune: they all use the same underlying material system, just configured differently. Mastering this system lets you control not just how things look, but how they transition between your tabletop aesthetic and your immersive 3D world.
+This module is not about creating art from scratch. You are not going to sculpt textures in Photoshop or model props in Blender. Instead, you are going to use the enormous library of free, professional-quality assets available through Megascans and Fab, and combine them with UE5's built-in rendering technology to make your dungeon look stunning.
 
----
-
-## PBR Basics: The Physics of Looking Real
-
-Unreal Engine uses Physically Based Rendering (PBR), which means materials describe how light actually interacts with surfaces in the real world. Instead of painting fake highlights and shadows onto textures (the old way), you describe the physical properties of the surface and let the renderer calculate the lighting in real time.
-
-Think of PBR like describing a material to someone who has never seen it: "It is rough like sandpaper, it is not metallic at all, and its base colour is dark brown." From that description alone, a PBR renderer can show you exactly what that material looks like under any lighting condition.
-
-### The Core PBR Channels
-
-**Base Colour (Albedo)**
-The raw colour of the surface without any lighting. A brick wall's base colour is reddish-brown. A gold coin's base colour is yellow-orange. This texture should have no baked shadows or highlights in it. It is purely "what colour is this thing?"
-
-Think of it as painting an object in a perfectly flat, shadowless environment. No dark corners, no bright spots. Just the pure colour.
-
-**Normal Map**
-A texture that fakes surface detail by bending the way light bounces off a flat polygon. Instead of modelling every tiny scratch, crack, and bump with actual geometry (which would be impossibly expensive), you encode the surface direction at each pixel in a purple-blue texture.
-
-Think of it as a cheat sheet for light. The renderer looks at the normal map and says, "Ah, this pixel should behave as if the surface is tilted 30 degrees to the left," even though the actual geometry is perfectly flat. This creates the illusion of depth and detail at virtually no performance cost.
-
-**Roughness**
-How smooth or rough the surface is, on a scale from 0 (mirror-smooth) to 1 (completely matte). A polished marble floor is near 0. A dusty chalk surface is near 1. Most real-world materials fall between 0.3 and 0.8.
-
-Think of roughness as "how scattered is the reflected light?" A smooth surface reflects light in a tight beam (you see a clear reflection). A rough surface scatters light in all directions (you see a diffuse, blurry highlight).
-
-**Metallic**
-A binary-ish value: either the material is metal (1.0) or it is not (0.0). There are very few materials in the real world that sit between these values (some edge cases with oxidation or layered coatings). Steel, gold, copper, and aluminium are metallic. Wood, stone, plastic, skin, and fabric are non-metallic.
-
-Why does this matter? Metals reflect light differently than non-metals. Metals tint their reflections with their base colour (gold reflects golden light). Non-metals reflect white light regardless of their colour.
+Think of it like interior decorating. The house is built (your level). Now you are choosing the wallpaper, the flooring, the lighting, and the mood. And UE5 gives you access to the best catalogue in the business.
 
 ---
 
-## The Material Editor
+## Materials: The Skin of Every Object
 
-Unreal's Material Editor is a visual node graph where you connect inputs, operations, and textures to define how a surface looks. Instead of writing shader code directly (though you can), you drag nodes, connect wires, and see the result in real time on a preview sphere.
+Every object in your game has a **material** applied to it. A material defines how a surface looks: its colour, how shiny it is, how rough it is, whether it has bumps and grooves.
 
-### Key Concepts
+Think of materials like paint on a miniature. The same plastic miniature looks completely different painted as a golden knight versus a muddy orc. The shape is the same; the material changes everything.
 
-**Material Expressions (Nodes)**
-Each node performs an operation: sample a texture, multiply two values, blend between colours, calculate a fresnel effect, read a parameter. You chain these together to build complex materials.
+### The Four Properties That Matter
 
-**Material Inputs**
-The final output pins on the main material node:
-- Base Colour
-- Metallic
-- Roughness
-- Normal
-- Emissive Colour (for glowing surfaces)
-- Opacity (for transparent materials)
-- World Position Offset (for vertex animation)
+You do not need to understand shader math. You just need to know four properties:
 
-**Blend Modes**
-- **Opaque:** Solid surface, no transparency. Used for most objects. Most performant.
-- **Masked:** Fully opaque or fully transparent per-pixel (cutout). Used for foliage, chain-link fences, hair cards.
-- **Translucent:** Variable transparency. Used for glass, water, ghosts. More expensive to render.
+1. **Base Colour**: What colour is the surface? A grey stone wall, a brown wooden plank, a red velvet curtain. This is the most obvious property.
 
-### A Simple PBR Material Setup
+2. **Roughness**: How smooth or rough is the surface? A polished marble floor has low roughness (shiny, reflective). A dusty stone wall has high roughness (matte, no reflections). Think of it as the difference between a bowling ball and a brick.
 
-```
-[Texture Sample: T_Wood_BaseColor] --> Base Color
-[Texture Sample: T_Wood_Normal]    --> Normal
-[Texture Sample: T_Wood_Roughness] --> Roughness
-[Constant: 0.0]                    --> Metallic
-```
+3. **Metallic**: Is the surface metal or not? A steel sword is metallic. A wooden shield is not. This is usually 0 (non-metal) or 1 (metal), with very little in between.
 
-This gives you a wooden surface. Four connections. That is the foundation of every material in the engine.
+4. **Normal Map**: This is the one that creates the "wow" factor. A normal map fakes surface detail without adding geometry. A flat wall with a stone normal map looks like it has bumps, cracks, and mortar lines, even though the mesh is perfectly flat. Think of it as an optical illusion that tricks the light into behaving as if the surface has depth.
+
+### Material Instances: Presets You Can Tweak
+
+A **Material Instance** is a copy of a material with adjustable parameters. Think of it like a preset on a photo filter. The base material is the filter. The instance lets you tweak the settings (make it redder, rougher, darker) without rebuilding the filter from scratch.
+
+This is incredibly useful. You create one "stone wall" master material, then make instances for "mossy stone," "dry stone," "cracked stone," and "bloodstained stone." Same base material, different settings.
 
 ---
 
-## Material Instances: Skins You Can Swap
+## Using Megascans and Fab (Free, Professional Assets)
 
-A Material Instance is a child of a parent material that lets you change parameter values without recompiling the shader. This is one of the most important performance and workflow concepts in Unreal materials.
+Here is the shortcut that saves you months of work: **Quixel Megascans** is a library of thousands of photorealistic scanned materials and 3D assets. Surfaces scanned from real stone, wood, metal, and fabric. And it is completely free for use in Unreal Engine.
 
-Think of it this way: the parent material is a cookie cutter (the shape, the recipe, the baking instructions). A Material Instance is a batch of cookies made with that cutter but with different frosting colours. You do not need to redesign the cutter for each colour; you just swap the frosting.
+### How to Access Megascans
 
-### Why Material Instances Matter
+1. In UE5, open the **Quixel Bridge** plugin (it is built into the engine).
+2. Browse categories: Surfaces, 3D Assets, Decals, Plants.
+3. Search for what you need: "dungeon stone," "wooden floor," "torch metal."
+4. Click **Download** and then **Add to Project**. The asset appears in your Content Browser, ready to use.
 
-Compiling a material in Unreal can take seconds to minutes. If you have 50 wooden objects with slightly different wood tones, you do not want 50 separate materials that each require compilation. Instead, you create one "Wood" parent material with exposed parameters (colour tint, roughness multiplier, texture), then create 50 Material Instances that set those parameters to different values. Instant changes, zero compilation.
+### What to Download for Your Dungeon
 
-```
-Parent Material: M_Wood
-    Parameters:
-        - BaseColorTint (Vector/Color, default: white)
-        - RoughnessMultiplier (Scalar, default: 1.0)
-        - WoodTexture (Texture2D, default: T_Oak)
+For the room you built in Module 01, grab these Megascans surfaces:
+- A **stone floor** surface (search "stone floor" or "castle floor")
+- A **stone wall** surface (search "stone wall" or "dungeon wall")
+- A **wooden** surface for doors and furniture
+- A **metal** surface for weapons and armour props
 
-Material Instances:
-    MI_Wood_Oak      -> WoodTexture = T_Oak, Tint = warm brown
-    MI_Wood_Birch    -> WoodTexture = T_Birch, Tint = pale yellow
-    MI_Wood_Ebony    -> WoodTexture = T_Ebony, Tint = near black
-    MI_Wood_Painted  -> WoodTexture = T_Oak, Tint = bright red, Roughness = 0.3
-```
-
-### Dynamic Material Instances
-
-You can also create Material Instances at runtime in C++ or Blueprints. This is how you change material properties during gameplay: fading a character in/out, flashing red when hit, transitioning between miniature and realistic materials.
-
-```cpp
-UMaterialInstanceDynamic* DynMaterial = UMaterialInstanceDynamic::Create(ParentMaterial, this);
-MeshComponent->SetMaterial(0, DynMaterial);
-
-// Later, during gameplay:
-DynMaterial->SetScalarParameterValue("TransitionAlpha", 0.5f);
-DynMaterial->SetVectorParameterValue("EmissiveColor", FLinearColor::Red);
-```
+To apply a material: select the object in the viewport, then in the Details Panel, find the **Material** slot and drag the Megascans material onto it. The grey cube instantly transforms into a realistic stone block.
 
 ---
 
-## Material Parameter Collections: Global Variables for Materials
+## Lumen Lighting: Just Turn It On
 
-A Material Parameter Collection (MPC) is a shared data container that all materials in the scene can read from. Change a value in the MPC, and every material referencing it updates instantly.
+UE5 introduced **Lumen**, a real-time global illumination system. In plain terms: light bounces realistically off surfaces. A torch near a red wall casts a subtle red glow on the floor. Sunlight streaming through a window illuminates the room even where the direct light does not reach.
 
-Think of an MPC as a radio broadcast. You set the frequency (parameter) at the station (MPC), and every radio (material) tuned to that station hears the update simultaneously.
+The best part? Lumen is on by default in UE5. You do not need to configure it. You just need to place lights and let the engine do its job.
 
-### Use Cases for Our Game
+### Lighting Your Dungeon
 
-- **Time of day:** A single "SunAngle" parameter drives colour temperature shifts across all outdoor materials
-- **Tabletop transition:** A "TransitionProgress" parameter (0.0 to 1.0) controls the global crossfade between tabletop and 3D world. Every material in the scene reads this value and adjusts accordingly.
-- **Weather intensity:** Rain wetness, snow accumulation, fog density: all driven by MPC parameters that affect every material at once
-- **Combat mode:** A "CombatActive" parameter that subtly shifts the colour palette or adds vignetting to all materials during encounters
+For a moody dungeon atmosphere, use **Point Lights** (not directional lights, which simulate outdoor sun).
 
-```cpp
-// Setting an MPC value from C++
-UMaterialParameterCollection* MPC = LoadObject<UMaterialParameterCollection>(
-    nullptr, TEXT("/Game/Materials/MPC_Global"));
-UKismetMaterialLibrary::SetScalarParameterValue(
-    GetWorld(), MPC, "TransitionProgress", 0.75f);
-```
+Think of each Point Light as a candle or torch. It casts light in all directions from a single point, creating a warm pool of light surrounded by shadows. Place them where torches would logically be: on walls, near doorways, above tables.
+
+Key settings for each Point Light:
+- **Intensity**: 2000-5000 for a torch-like glow. Higher = brighter.
+- **Colour**: Warm orange (R: 255, G: 180, B: 80) for torches. Cool blue (R: 100, G: 150, B: 255) for magical crystals.
+- **Attenuation Radius**: How far the light reaches before fading out. 500-1000 units for small rooms.
+
+Place 4-6 Point Lights in your dungeon room at different positions. Suddenly, the space has depth, mood, and atmosphere.
 
 ---
 
-## Render-to-Texture with Scene Capture 2D
+## Nanite: Detail Without the Performance Cost
 
-This is the technical foundation of your tabletop map. A Scene Capture 2D component is essentially a virtual camera that renders its view to a texture instead of the screen. You can then apply that texture to any surface, including the tabletop.
+**Nanite** is UE5's system for rendering extremely detailed meshes without destroying your frame rate. Think of it like a smart camera that only renders the level of detail you can actually see. A stone wall with millions of polygons shows full detail up close, but automatically simplifies when you are far away.
 
-### How the Tabletop Map Works
+For you, Nanite means: download the most detailed Megascans assets you want, enable Nanite on the mesh (right-click the Static Mesh > Nanite > Enable), and do not worry about performance. The engine handles it.
 
-1. **Build the 3D world** as normal: terrain, buildings, trees, rivers, all in a sublevel or a hidden area of the map
-2. **Place a Scene Capture 2D** above the 3D world, pointing straight down (orthographic or perspective, depending on the style you want)
-3. **Create a Render Target texture** (e.g., 2048x2048 resolution)
-4. **Assign the Render Target** as the Scene Capture's texture target
-5. **Create a material** that samples the Render Target as its base colour
-6. **Apply that material** to the tabletop surface (a flat plane on the physical table)
-
-Now, the tabletop surface shows a live, top-down view of the 3D world. Characters moving in the 3D world appear as moving dots on the tabletop map. The DM can look down at the table and see the entire dungeon layout rendered in real time.
-
-```
-[Scene Capture 2D]
-    |
-    v (renders to)
-[Render Target Texture: RT_TabletopMap]
-    |
-    v (sampled by)
-[Material: M_TabletopSurface]
-    |
-    v (applied to)
-[Static Mesh: SM_TableSurface]
-```
-
-### Performance Considerations
-
-Scene Captures are expensive. Each one is essentially rendering the scene a second time. Mitigation strategies:
-
-- **Reduce capture resolution:** 1024x1024 is often sufficient for a tabletop map
-- **Lower capture framerate:** The tabletop does not need 60fps updates. Capture every 2-3 frames or even less
-- **Use Show Only or Hidden Actors lists:** Only capture the relevant objects, not the entire scene
-- **Disable features:** Turn off shadows, anti-aliasing, and post-processing on the Scene Capture for significant savings
-
-```cpp
-SceneCaptureComponent->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
-SceneCaptureComponent->bCaptureEveryFrame = false;
-SceneCaptureComponent->bCaptureOnMovement = false;
-SceneCaptureComponent->CaptureScene(); // Manual capture when needed
-```
+Not every mesh supports Nanite (skeletal meshes and some translucent materials do not), but for environment props like walls, floors, rocks, and furniture, it works brilliantly.
 
 ---
 
-## Nanite: Automatic LODs for Dense Meshes
+## Post-Processing: The Colour Grade
 
-Nanite is UE5's virtualised geometry system. It takes meshes with millions of polygons and automatically streams, clusters, and LODs them so the GPU only processes the triangles that actually contribute to pixels on screen.
+Post-processing is the Instagram filter of game development. It is applied after the scene is rendered and changes the overall look: colour tone, contrast, bloom, fog, depth of field.
 
-Think of Nanite like a smart librarian. Instead of delivering the entire encyclopedia set to your desk (rendering all triangles), the librarian only brings the specific pages you are reading right now (the triangles visible on screen at the current zoom level). As you zoom in, the librarian swaps in higher-detail pages. Zoom out, and lower-detail pages replace them. You never notice the swaps.
+### Setting Up Post-Processing
 
-### When to Use Nanite
-
-- **Static meshes with high detail:** Architectural elements, terrain, props, environment assets
-- **Dense environments:** Forests, cities, ruins with millions of polygons
-
-### When NOT to Use Nanite
-
-- **Skeletal meshes:** Nanite does not support animated meshes (as of UE 5.3+, limited support exists)
-- **Translucent materials:** Nanite requires opaque or masked materials
-- **World Position Offset:** Materials that move vertices are not compatible
-
-### For Our Game
-
-Nanite is perfect for the detailed tabletop environment (the table itself, books, dice, DM screen) and for the 3D world's static environment (dungeon walls, floor tiles, furniture, statues). Character meshes will use traditional LODs since they are skeletal meshes.
+1. In the viewport, go to **Place Actors** and add a **Post Process Volume**.
+2. In the Details Panel, check **Infinite Extent (Unbound)** so it affects the entire level.
+3. Tweak these settings for a dungeon mood:
+   - **Bloom**: Adds a soft glow around bright lights (like torches). Set intensity to 0.5 for a subtle effect.
+   - **Exposure**: Controls overall brightness. For a dark dungeon, set Min/Max Exposure to low values (e.g., Min: 0.5, Max: 2.0).
+   - **Colour Grading**: Under "Global" in the post-process settings, you can tint the shadows cool (blue) and highlights warm (orange). This creates a cinematic contrast.
+   - **Vignette**: Darkens the screen edges slightly, drawing the eye to the centre. Intensity 0.3-0.5 for a subtle effect.
 
 ---
 
-## Lumen: Real-Time Global Illumination
+## Atmospheric Effects: Fog and Dust
 
-Lumen is UE5's dynamic global illumination and reflection system. It calculates how light bounces around the scene in real time, filling shadows with indirect light and creating accurate reflections without baking lightmaps.
+A dungeon should feel enclosed, damp, and slightly ominous. Two effects sell this:
 
-Think of Lumen as upgrading from a single flashlight (direct light only) to a room full of mirrors and coloured walls (light bouncing everywhere, tinting surfaces with reflected colours). A red curtain casts a subtle red glow on the nearby wall. Light from a window fills the room with soft, natural illumination even in areas the sun does not directly reach.
+### Exponential Height Fog
 
-### Why Lumen Matters for Our Game
+1. Add an **Exponential Height Fog** actor to your level.
+2. Set **Fog Density** to a low value (0.01-0.05). Too high and you cannot see anything.
+3. Set the **Fog Colour** to a desaturated blue-grey.
+4. Enable **Volumetric Fog** in the fog settings. This makes light beams visible as they cut through the fog, which looks incredible with torches.
 
-- **The tabletop scene** needs warm, cosy lamp lighting with light bouncing off the wooden table, book pages, and character sheets
-- **Dungeons** need dramatic lighting where a single torch illuminates a corridor and the light bounces off wet stone walls
-- **Outdoor scenes** need natural, diffuse lighting with realistic sky illumination
-- **The transition** between tabletop and 3D world involves a dramatic lighting shift that Lumen handles dynamically
+### The Before/After
 
-### Lumen Settings Worth Knowing
-
-- **Lumen Global Illumination:** Controls indirect lighting quality and distance
-- **Lumen Reflections:** Controls reflection accuracy (screen-space vs ray-traced)
-- **Final Gather Quality:** Higher values reduce noise in indirect lighting but cost more
-- **Software Ray Tracing vs Hardware Ray Tracing:** Software works on all modern GPUs. Hardware requires RTX/RDNA2+ but is faster and higher quality.
+Without these effects, your dungeon is a well-lit room with grey walls. With Megascans materials, Point Lights, Lumen bounced lighting, volumetric fog, and post-processing colour grading, the same room becomes a dark, atmospheric dungeon that feels like you could reach in and touch the stone.
 
 ---
 
-## The Miniature-to-Character Crossfade
+## Automating the Setup with Python
 
-This is the signature visual effect of the game. When the camera zooms from the tabletop overview into the 3D world, the painted miniature figures crossfade into realistic, fully animated characters. Here is how to build it.
+Rather than manually placing lights and adjusting settings every time, you can ask Claude for a Python script that sets up the atmosphere automatically:
 
-### The Approach: Lerp with TransitionAlpha
+```python
+import unreal
 
-Create a material that blends between two complete material setups:
+editor = unreal.EditorLevelLibrary
 
-1. **Miniature look:** Stylised, painted appearance. Slightly desaturated, visible brush strokes, a matte finish with subtle specular on metallic parts. Think hand-painted Warhammer miniature.
-2. **Realistic look:** Full PBR with detailed textures, proper roughness variation, subsurface scattering on skin, realistic metallic reflections.
+# Create atmospheric fog
+fog = editor.spawn_actor_from_class(
+    unreal.ExponentialHeightFog,
+    unreal.Vector(0, 0, 0)
+)
+fog.set_actor_label("DungeonFog")
+fog_component = fog.get_component_by_class(
+    unreal.ExponentialHeightFogComponent
+)
+fog_component.set_editor_property("fog_density", 0.02)
+fog_component.set_editor_property("volumetric_fog", True)
 
-A single scalar parameter, `TransitionAlpha`, controls the blend:
-- `TransitionAlpha = 0.0`: Full miniature look
-- `TransitionAlpha = 1.0`: Full realistic look
-- Values in between: a smooth crossfade
+# Create a warm torch light
+torch_positions = [
+    unreal.Vector(-400, 0, 300),
+    unreal.Vector(400, 0, 300),
+    unreal.Vector(0, -400, 300),
+    unreal.Vector(0, 400, 300),
+]
 
-```
-// Material node graph (simplified)
+for i, pos in enumerate(torch_positions):
+    light = editor.spawn_actor_from_class(unreal.PointLight, pos)
+    light.set_actor_label(f"TorchLight_{i+1}")
+    light.point_light_component.set_intensity(3000)
+    light.point_light_component.set_light_color(
+        unreal.LinearColor(1.0, 0.7, 0.3, 1.0)
+    )
+    light.point_light_component.set_attenuation_radius(800)
 
-[Texture: T_Miniature_BaseColor] --> A
-[Texture: T_Realistic_BaseColor] --> B
-[Parameter: TransitionAlpha]     --> Alpha
-[Lerp(A, B, Alpha)]             --> Base Color
-
-[Constant: 0.8]                 --> A (matte miniature)
-[Texture: T_Realistic_Roughness] --> B
-[Parameter: TransitionAlpha]      --> Alpha
-[Lerp(A, B, Alpha)]              --> Roughness
-
-[Constant: 0.0]                  --> A (non-metallic miniature)
-[Texture: T_Realistic_Metallic]  --> B
-[Parameter: TransitionAlpha]      --> Alpha
-[Lerp(A, B, Alpha)]              --> Metallic
-```
-
-### Driving the Transition
-
-The camera system (Module 06) drives the transition. As the camera moves from the tabletop overview position to the 3D world close-up position, it updates the `TransitionAlpha` parameter:
-
-```cpp
-void ACameraDirector::UpdateTransition(float CameraProgress)
-{
-    // CameraProgress: 0.0 = tabletop view, 1.0 = fully in 3D world
-    float Alpha = FMath::SmoothStep(0.0f, 1.0f, CameraProgress);
-
-    // Update via Material Parameter Collection (affects all characters at once)
-    UKismetMaterialLibrary::SetScalarParameterValue(
-        GetWorld(), GlobalMPC, "TransitionAlpha", Alpha);
-
-    // Also update lighting, post-processing, audio crossfade, etc.
-}
+print("Dungeon atmosphere created!")
 ```
 
-Using an MPC means every character in the scene transitions simultaneously. If you need individual characters to transition at different times (e.g., one by one as the camera passes over them), use Dynamic Material Instances on each character instead.
-
-### Adding Polish
-
-- **Scale transition:** Miniatures are small. Characters are human-sized. Animate the actor's scale alongside the material transition.
-- **Animation transition:** Miniatures are static (or have a subtle idle wobble). Characters are fully animated. Blend the animation weight with TransitionAlpha.
-- **Base removal:** Miniatures sit on circular bases. As TransitionAlpha increases, fade out the base mesh.
-- **Particle dust:** Spawn a subtle particle effect (magical sparkles, dust motes) during the crossfade to mask any imperfections.
+One paste. Your room transforms.
 
 ---
 
-## Post-Processing for Mood Shifts
+## What You Built Today
 
-Post-processing volumes apply screen-wide effects that shift the mood of the entire scene. For our game, different contexts demand different atmospheres.
+- Applied Megascans materials to your dungeon (stone walls, wooden floors, metal props).
+- Understood the four key material properties: Base Colour, Roughness, Metallic, Normal Map.
+- Set up Lumen lighting with warm torch-coloured Point Lights.
+- Enabled Nanite for high-detail meshes without performance cost.
+- Added post-processing for mood (bloom, colour grading, vignette).
+- Created atmospheric fog with volumetric light beams.
+- Used Python to automate the atmospheric setup.
 
-### Tabletop Scene
-- Warm colour temperature (orange tint)
-- Slight vignette (darker edges, drawing focus to the centre of the table)
-- Low bloom (soft glow from candles and lamps)
-- Depth of field focused on the table surface
+Your dungeon went from grey cubes under flat light to a moody, atmospheric space that looks and feels like a real fantasy game. And you did not create a single texture from scratch.
 
-### Dungeon Scene
-- Cool colour temperature (blue-grey)
-- High contrast
-- Stronger bloom on light sources (torches, magical effects)
-- Film grain for a gritty atmosphere
-
-### Outdoor Scene
-- Neutral colour temperature
-- Auto-exposure for realistic brightness adaptation
-- Atmospheric fog
-- Chromatic aberration at the edges (subtle, cinematic feel)
-
-### Combat Mode
-- Slightly desaturated background
-- Increased contrast on characters
-- Subtle red tint on enemy highlights
-- Depth of field focused on the active character
-
-```cpp
-// Blending between post-processing settings
-void APostProcessManager::TransitionToMood(UPostProcessComponent* TargetPP, float Duration)
-{
-    // Use a timeline to lerp post-process blend weight
-    // From: CurrentPP->BlendWeight = 1.0, TargetPP->BlendWeight = 0.0
-    // To:   CurrentPP->BlendWeight = 0.0, TargetPP->BlendWeight = 1.0
-}
-```
-
-Post-processing volumes can be bound to specific areas (dungeon entrance triggers the dungeon mood) or switched globally (combat mode activates regardless of location).
-
----
-
-## Summary
-
-| Concept | What It Does | Our Game Usage |
-|---|---|---|
-| PBR Materials | Physically accurate surface rendering | Every surface in the game |
-| Material Instances | Parameter variants without recompilation | Different wood types, armour sets, weapon finishes |
-| Material Parameter Collections | Global material variables | Transition progress, time of day, weather |
-| Scene Capture 2D | Renders scene to a texture | Live tabletop map showing the 3D world |
-| Nanite | Automatic geometry LODs | Detailed static environments |
-| Lumen | Real-time global illumination | Dynamic lighting for all scenes |
-| TransitionAlpha Crossfade | Blends miniature and realistic materials | The signature tabletop-to-3D effect |
-| Post-Processing | Screen-wide mood effects | Atmosphere shifts between contexts |
-
-Materials and rendering are where your game's visual identity lives. The tabletop-to-3D transition is not just a gimmick; it is the core promise of the experience. Getting this right means players feel the magic of watching their miniatures come to life every single time the camera pushes in.
+The best part? Every new room you build from now on can use the same materials, the same lighting setup, and the same atmosphere script. The hard work is done once. From here, it is creative decisions: which materials, which colours, which mood.

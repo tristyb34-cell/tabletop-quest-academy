@@ -1,198 +1,109 @@
-# Module 05: Exercises - Materials and Rendering
+# Module 05: Exercises
 
-## Exercise 1: Create a Basic PBR Material
-
-**Objective:** Build a material from scratch using the four core PBR channels, and understand how each channel affects the surface appearance.
-
-**Steps:**
-
-1. Open the Material Editor and create a new material called `M_Stone_Basic`.
-
-2. Set the material's **Shading Model** to Default Lit and **Blend Mode** to Opaque.
-
-3. Add a **Vector Parameter** node called "BaseColor" with a default value of medium grey (0.5, 0.5, 0.5). Connect it to the Base Color input.
-
-4. Add a **Scalar Parameter** node called "Roughness" with a default value of 0.7. Connect it to the Roughness input.
-
-5. Add a **Scalar Parameter** node called "Metallic" with a default value of 0.0. Connect it to the Metallic input.
-
-6. For now, leave the Normal input disconnected (flat surface).
-
-7. Apply the material to a sphere, cube, and plane in your scene.
-
-8. Experiment by changing the parameter values in the material:
-   - Set Roughness to 0.0 and observe the mirror-like reflection
-   - Set Roughness to 1.0 and observe the completely matte surface
-   - Set Metallic to 1.0 and observe how the reflection tints with the base colour
-   - Change Base Color to a bright red and toggle Metallic between 0 and 1 to see the difference in reflection behaviour
-
-**Verification:**
-- The material compiles without errors
-- Roughness visibly changes how light reflects off the surface
-- Metallic changes how the base colour interacts with reflections
-- The sphere, cube, and plane all use the same material but the lighting differences are visible across the different surface angles
-
-**Stretch Goal:** Add an Emissive channel. Create a scalar parameter "EmissiveIntensity" and multiply it with a colour to make the object glow. This previews how magical effects and runes will work.
+Three exercises that transform your dungeon from prototype to polished. Complete them in order.
 
 ---
 
-## Exercise 2: Create a Textured Material with a Normal Map
+## Exercise 1: Apply Megascans Materials to Your Dungeon
 
-**Objective:** Use texture maps to create a realistic wood material, and understand how normal maps add surface detail without geometry.
+**Goal**: Replace all placeholder materials in the Module 01 dungeon room with realistic Megascans surfaces.
 
-**Steps:**
+### Steps
 
-1. Download or create three textures for a wood surface:
-   - `T_Wood_BaseColor` (the colour/grain of the wood)
-   - `T_Wood_Normal` (surface bumps and grain direction)
-   - `T_Wood_Roughness` (variation: glossy varnished areas vs matte bare wood)
+1. Open the **Quixel Bridge** plugin in UE5 (Window > Quixel Bridge, or find it in the toolbar).
+2. Search for and download these surfaces (or similar ones that match your dungeon vision):
+   - A stone floor material (search "stone floor," "castle floor," or "cobblestone")
+   - A stone wall material (search "dungeon wall," "stone brick," or "rough stone")
+   - A wooden material for any doors or furniture (search "old wood" or "dark wood planks")
+3. Add each downloaded asset to your project.
+4. In your dungeon level, select the floor Actor. In the Details Panel, find the Material slot and assign the stone floor material.
+5. Repeat for all four walls (stone wall material) and any furniture (wood material).
+6. If you have the treasure chest and door from Module 02, apply appropriate materials to those as well.
+7. Fly through the room and compare the before (grey cubes) to the after (textured surfaces).
 
-2. Create a new material called `M_Wood_Textured`.
+### Success Criteria
 
-3. Add three **Texture Sample** nodes, one for each texture. Connect them to the Base Color, Normal, and Roughness inputs respectively.
+- Every visible surface in the room has a realistic material applied (no more default grey).
+- The floor material is different from the wall material.
+- The room looks like it could be part of a fantasy dungeon.
+- You can identify each material in the Content Browser.
 
-4. For the Normal texture, make sure the **Sampler Type** on the Texture Sample node is set to "Normal" (not "Color"). This ensures the engine interprets the data correctly.
+### Stretch Goal
 
-5. Add a **Texture Coordinate** node and connect it to all three Texture Sample UV inputs. Set the tiling to (2, 2) so the texture repeats twice across the surface.
-
-6. Apply the material to a flat plane that represents a tabletop surface.
-
-7. Add a point light near the surface and move it around. Observe how the normal map creates the illusion of depth in the wood grain, even though the geometry is perfectly flat.
-
-8. Temporarily disconnect the Normal map input and observe the difference. The surface should look flat and unconvincing without it.
-
-**Verification:**
-- The wood grain is visible and repeats across the surface
-- Moving a light across the surface reveals depth and texture from the normal map
-- The roughness variation creates subtle differences in how different parts of the wood reflect light
-- Disconnecting the normal map makes the surface look noticeably flat
-
-**Stretch Goal:** Add a **Detail Normal Map** that layers fine wood fibre detail on top of the main normal map. Use a BlendAngleCorrectNormal node to combine them. Use a higher tiling value (8, 8) for the detail layer so the fine texture repeats more frequently.
+Create a **Material Instance** from one of the wall materials. Adjust its parameters (make it darker, rougher, or add a green tint for moss). Apply the instance to one wall so it looks different from the others, as if that section of the dungeon is older or damper.
 
 ---
 
-## Exercise 3: Material Instance with Adjustable Parameters
+## Exercise 2: Set Up Lumen Lighting with Torches
 
-**Objective:** Create a parent material with exposed parameters and generate multiple Material Instances for different surface variations, without recompiling the shader each time.
+**Goal**: Light the dungeon with warm, atmospheric Point Lights that create shadows and mood.
 
-**Steps:**
+### Steps
 
-1. Create a parent material called `M_Armour_Master`. This will be the base for all armour pieces in the game.
+1. Delete or disable any Directional Light in the level (you want the dungeon to feel underground, not sunlit).
+2. Add a **Point Light** near the first wall. Set these properties:
+   - **Intensity**: 3000
+   - **Light Colour**: Warm orange (R: 255, G: 180, B: 80)
+   - **Attenuation Radius**: 800
+3. Duplicate this light (Ctrl+D) and place copies at 3-4 other locations around the room: near the door, above the treasure chest, in a dark corner.
+4. Vary the intensity slightly between lights (2500 for one, 3500 for another) so the lighting feels natural rather than uniform.
+5. Add one light with a different colour, a cool blue-white (R: 150, G: 180, B: 255) with low intensity (1500), to simulate a magical glow from a crystal or enchanted object.
+6. Verify Lumen is active: go to **Project Settings > Rendering > Global Illumination** and confirm "Lumen" is selected (it should be by default).
+7. Fly through the room. Notice how light bounces off the stone walls, creating subtle colour in the shadows. This is Lumen at work.
 
-2. Expose the following parameters:
-   - **BaseColorTint** (Vector Parameter, default: white): Multiplied with the base colour texture to tint the armour
-   - **RoughnessScale** (Scalar Parameter, default: 0.5, range 0-1): Controls overall surface smoothness
-   - **MetallicOverride** (Scalar Parameter, default: 1.0, range 0-1): Allows non-metallic armour variants (leather, bone)
-   - **NormalIntensity** (Scalar Parameter, default: 1.0, range 0-2): Controls how pronounced the surface detail appears
-   - **EmissiveColor** (Vector Parameter, default: black): For glowing enchantment effects
-   - **EmissiveIntensity** (Scalar Parameter, default: 0.0, range 0-50): Controls glow brightness
+### Success Criteria
 
-3. For the Normal intensity, multiply the normal map by the NormalIntensity parameter using a FlattenNormal node or manual lerp between (0,0,1) and the sampled normal.
+- The dungeon is lit entirely by Point Lights (no sunlight).
+- Areas near lights are warm and visible. Areas between lights are dark and shadowy.
+- At least one light has a contrasting cool colour for visual variety.
+- Light bounces are visible on nearby surfaces (orange glow on the floor from a wall torch).
 
-4. Create four Material Instances from this parent:
-   - **MI_Armour_SteelPlate:** Silver tint, high metallic, low roughness (polished steel)
-   - **MI_Armour_RustedIron:** Orange-brown tint, high metallic, high roughness (corroded iron)
-   - **MI_Armour_Leather:** Brown tint, zero metallic, high roughness (leather armour)
-   - **MI_Armour_Enchanted:** Blue tint, high metallic, low roughness, blue emissive glow
+### Stretch Goal
 
-5. Apply each Material Instance to a copy of the same armour mesh. Place all four side by side in the scene.
-
-**Verification:**
-- All four variants look distinctly different despite using the same parent material
-- Changing a parameter on a Material Instance updates instantly, no compilation needed
-- The enchanted variant glows with the emissive colour
-- Adjusting NormalIntensity visibly changes the depth of surface detail
-
-**Stretch Goal:** Create a Dynamic Material Instance in Blueprint or C++. Attach it to an armour piece and animate the EmissiveIntensity using a sine wave timeline, creating a pulsing magical glow effect.
+Attach a Point Light to one of the torch Blueprints from Module 02 (the toggle torch). When the torch is "lit," the light is on. When toggled off, the light turns off and that section of the dungeon goes dark. Walk through the room toggling torches and watch the lighting change dynamically.
 
 ---
 
-## Exercise 4: The Miniature-to-Character Crossfade Material
+## Exercise 3: Add Post-Processing and Fog for Atmosphere
 
-**Objective:** Build the signature transition material that blends between a painted miniature look and a realistic PBR character appearance, driven by a single TransitionAlpha parameter.
+**Goal**: Add post-processing effects and fog to create a moody dungeon atmosphere.
 
-**Steps:**
+### Steps
 
-1. Create a new material called `M_Character_Transition`. Set it up for character use (used with skeletal meshes).
+1. Add a **Post Process Volume** to the level. In the Details Panel, check **Infinite Extent (Unbound)**.
+2. Configure these settings:
+   - **Bloom > Intensity**: 0.5 (soft glow around light sources)
+   - **Exposure > Min Brightness / Max Brightness**: Set to 0.5 and 2.0 to keep the dungeon dark
+   - **Colour Grading > Global > Saturation**: Reduce slightly (0.85) for a muted, gritty feel
+   - **Colour Grading > Shadows > Tint**: Shift toward blue for cool shadows
+   - **Vignette > Intensity**: 0.4 for subtle edge darkening
+3. Add an **Exponential Height Fog** actor:
+   - **Fog Density**: 0.02 (subtle, not a pea soup fog)
+   - **Fog Inscattering Colour**: Desaturated blue-grey
+   - Enable **Volumetric Fog**
+4. Press Play and walk through the dungeon. Light beams from your Point Lights should now be visible cutting through the fog.
+5. Take a screenshot. Compare it to what the room looked like in Module 01.
+6. Experiment: try different post-processing settings. Make the room look cold and eerie (blue tint, high fog). Make it look warm and inviting (orange tint, low fog, high bloom). Find the mood that fits your game.
 
-2. Create two texture sets:
-   - **Miniature set:** A base colour texture with a hand-painted, slightly desaturated look. A flat roughness (constant 0.8 for a matte paint finish). Zero metallic.
-   - **Realistic set:** A detailed base colour texture with skin tones and fabric detail. A roughness map with variation. A metallic map for armour pieces.
+### Success Criteria
 
-3. Add a **Scalar Parameter** called "TransitionAlpha" (default: 0.0, range 0-1).
+- Post-processing is applied globally (the entire level looks different from default).
+- Bloom creates soft halos around torch lights.
+- Fog is visible but not overwhelming.
+- Volumetric light beams are visible from at least one light source.
+- The overall mood feels like a dungeon, not a clean showroom.
 
-4. Use **Lerp** nodes to blend between the two sets:
-   - Base Color: Lerp(Miniature_BaseColor, Realistic_BaseColor, TransitionAlpha)
-   - Roughness: Lerp(0.8, Realistic_Roughness, TransitionAlpha)
-   - Metallic: Lerp(0.0, Realistic_Metallic, TransitionAlpha)
-   - Normal: Lerp(FlatNormal, Realistic_Normal, TransitionAlpha)
+### Stretch Goal
 
-5. Add a painterly effect to the miniature side:
-   - Use a noise texture multiplied with the miniature base colour to simulate visible brush strokes
-   - Blend this effect out as TransitionAlpha increases: `BrushStrokes * (1 - TransitionAlpha)`
-
-6. Create a **Material Parameter Collection** called `MPC_Global` with a scalar parameter "TransitionProgress".
-
-7. In the material, replace the local TransitionAlpha parameter with a read from the MPC. This way, all characters transition simultaneously when you update the MPC value.
-
-8. Create a test Blueprint that smoothly animates the MPC TransitionProgress from 0 to 1 over 3 seconds when you press a key.
-
-**Verification:**
-- At TransitionAlpha 0: the character looks like a painted miniature (matte, stylised, visible brush texture)
-- At TransitionAlpha 1: the character looks like a realistic PBR character
-- At TransitionAlpha 0.5: you see a convincing mid-transition blend
-- Pressing the test key smoothly transitions all characters in the scene simultaneously
-- The transition is visually smooth with no obvious popping or jarring switches
-
-**Stretch Goal:** Add a dissolve edge effect during the transition. Use a noise texture to create a glowing, magical edge that sweeps across the character as the transition progresses. The edge should emit coloured light (gold or blue) to sell the "coming to life" feeling.
+Ask Claude for a Python script that sets up the entire atmosphere (fog, post-process volume, and 4-6 Point Lights at predefined positions) in one paste. Test it in a new, empty room to see how quickly you can go from "empty grey box" to "atmospheric dungeon."
 
 ---
 
-## Exercise 5: Render-to-Texture for the Tabletop Map
+## Reflection
 
-**Objective:** Set up a Scene Capture 2D that renders a top-down view of your 3D game world to a texture, then display that texture on the tabletop surface as a live miniature map.
+After completing all three exercises, fly through your dungeon slowly and appreciate the transformation:
 
-**Steps:**
+- Module 01: Grey cubes in flat light.
+- Module 05: Textured stone walls, warm torchlight bouncing off surfaces, volumetric fog, and cinematic colour grading.
 
-1. Create a simple 3D world scene in a sublevel or a separate area of your map:
-   - A basic terrain or floor
-   - A few walls or buildings
-   - At least one moving actor (a character walking a path using a spline or simple movement logic)
-
-2. Create a **Render Target** texture asset:
-   - Resolution: 1024x1024 (can increase later)
-   - Format: RTF_RGBA8
-   - Name: `RT_TabletopMap`
-
-3. Place a **Scene Capture Component 2D** in the scene:
-   - Position it above the 3D world, pointing straight down (rotation: pitch = -90)
-   - Set the capture source to "Final Color (LDR)"
-   - Assign `RT_TabletopMap` as the Texture Target
-   - Set the projection type to Orthographic for a clean, flat map look
-   - Adjust the ortho width to frame your entire play area
-
-4. Create a material `M_TabletopMap`:
-   - Sample `RT_TabletopMap` as a Texture Sample (use the Render Target directly)
-   - Connect to Base Color
-   - Optionally add a slight roughness (0.3) so the map surface has a slight parchment/paper feel
-   - Add a vignette effect around the edges using a radial gradient to make it feel like a physical map
-
-5. Create a flat plane mesh representing the tabletop surface and apply `M_TabletopMap` to it.
-
-6. Configure the Scene Capture for performance:
-   - Set `bCaptureEveryFrame` to false
-   - Create a timer that calls `CaptureScene()` every 0.1 seconds (10fps update rate)
-   - Add a ShowOnly list and add only the relevant actors (terrain, buildings, characters), excluding UI elements and debug objects
-
-7. Test the setup:
-   - Move the character in the 3D world and observe the miniature moving on the tabletop map
-   - Place or remove objects in the 3D world and see them appear/disappear on the map
-
-**Verification:**
-- The tabletop surface shows a live, top-down view of the 3D world
-- Moving actors in the 3D world are visible as moving elements on the tabletop
-- The map updates smoothly at the configured frame rate
-- The render target resolution is sufficient to see meaningful detail
-- Performance impact is manageable (check the frame time with and without the Scene Capture)
-
-**Stretch Goal:** Add a "fog of war" effect. Create a second Render Target that acts as a visibility mask. Paint explored areas white and unexplored areas black. Multiply this mask with the map texture in the tabletop material so unexplored areas appear dark or hidden. Update the visibility mask as the player character moves through the world.
+The geometry barely changed. The materials, lighting, and post-processing did all the work. That is the power of rendering in a modern engine. You did not model a single prop or paint a single texture. You curated, placed, and tuned. And the result looks like a real game.

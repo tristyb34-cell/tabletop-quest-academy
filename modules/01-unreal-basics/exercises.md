@@ -1,154 +1,95 @@
 # Module 01: Exercises
 
-## Exercise 1: Install UE5 and Create a Blank Project
-
-**Goal**: Get Unreal Engine 5 installed and running on your machine.
-
-### Steps
-
-1. Download and install the Epic Games Launcher from [unrealengine.com](https://www.unrealengine.com/).
-2. In the launcher, go to the Unreal Engine tab and install the latest UE5 version.
-3. Once installed, click "Launch" and create a new project using the "Blank" template.
-4. Name the project `MyFirstProject`.
-5. Choose "Blueprint" as the project type and "Desktop" as the target platform.
-6. Click "Create" and wait for the editor to open.
-
-### Success Criteria
-
-- The UE5 editor opens without errors.
-- You can see the viewport, outliner, details panel, and content browser.
-- The project appears in your Epic Games Launcher library.
-
-### Bonus
-
-- Create a second project using the "Third Person" template. Notice how it comes pre-loaded with a character, animations, and a test level. Explore the differences between the blank and third person templates.
+These three exercises build on each other. Complete them in order.
 
 ---
 
-## Exercise 2: Navigate the Viewport
+## Exercise 1: Run the Room Script, Then Make It Bigger
 
-**Goal**: Get comfortable moving around in the 3D viewport.
+**Goal**: Run your first Python script in UE5 and modify it to change the room dimensions.
 
 ### Steps
 
-1. Open the Third Person template project (or any project with objects in the scene).
-2. Practice each navigation method for at least 2 minutes:
-   - **Right-click + WASD**: Fly through the scene. Adjust speed with the scroll wheel.
-   - **Middle mouse + drag**: Pan the view left, right, up, and down.
-   - **Scroll wheel**: Zoom in and out.
-   - **Right-click + drag (without WASD)**: Rotate the camera in place.
-3. Select any object in the scene and press **F** to focus the camera on it.
-4. Switch to orthographic views using Alt + J (top), Alt + K (front), and Alt + H (side).
-5. Switch back to perspective view.
+1. Open your TabletopQuest project in UE5.7.
+2. Open the Python console (Window > Developer Tools > Output Log, switch dropdown to "Python").
+3. Paste the room-creation script from the lesson and run it.
+4. Fly around the room using right-click + WASD. Get a feel for the space.
+5. Now modify the script. Change the floor scale from `(10, 10, 0.1)` to `(15, 15, 0.1)` and adjust the wall positions to match (move them from 500 to 750 units out). Re-run the script.
+6. Delete the old, smaller room Actors from the World Outliner (select them, press Delete).
+7. Fly through your new, larger room. Notice how the same light now feels dimmer because the space is bigger.
 
 ### Success Criteria
 
-- You can reach any part of the scene using fly navigation.
-- You can focus on a specific actor with the F key.
-- You understand the difference between perspective and orthographic views.
+- A room exists in your level, built entirely from a Python script.
+- You successfully modified the dimensions and re-ran the script.
+- You can identify each Actor (floor, walls, light) in the World Outliner.
 
-### Reflection Questions
+### Stretch Goal
 
-- When would an orthographic (top-down) view be more useful than perspective?
-- How does adjusting the camera speed help when working on both large landscapes and small detailed objects?
+Modify the script to create a second, smaller room connected to the first (like a hallway leading to a side chamber). You will need a fifth wall with a doorway gap, or simply two rooms sharing one wall.
 
 ---
 
-## Exercise 3: Place and Transform Actors
+## Exercise 2: Download and Import a Fantasy Asset Pack
 
-**Goal**: Learn to add objects to your level and manipulate them with translate, rotate, and scale.
+**Goal**: Get free fantasy assets into your project from Fab.
 
 ### Steps
 
-1. Open a Blank project (or clear out your existing level).
-2. Open the "Place Actors" panel (use the top menu: Window > Place Actors if it is not visible).
-3. Place a **Cube** into the viewport by dragging it from the Basic Shapes section.
-4. With the cube selected:
-   - Press **W** and drag the colored arrows to move it along each axis (red = X, green = Y, blue = Z).
-   - Press **E** and drag the rotation rings to rotate it 45 degrees on the Z axis.
-   - Press **R** and scale it to be twice as tall on the Z axis (non-uniform scale).
-5. Check the Details panel. Manually type in these exact values:
-   - Location: X = 0, Y = 200, Z = 100
-   - Rotation: X = 0, Y = 0, Z = 45
-   - Scale: X = 1, Y = 1, Z = 2
-6. Place a **Sphere** and a **Cylinder** into the scene.
-7. Arrange all three shapes into a simple "snowman" figure: large sphere at the bottom, cylinder in the middle, small sphere on top.
+1. Open the Epic Games Launcher and navigate to **Fab** (or go to [fab.com](https://www.fab.com/)).
+2. Search for a free fantasy or medieval asset pack. Recommended searches:
+   - "Infinity Blade" (weapons, characters, effects)
+   - "dungeon" or "medieval" (environment props)
+   - "fantasy" with the price filter set to "Free"
+3. Add the pack to your library and import it into your TabletopQuest project.
+4. In the Content Browser, navigate to the imported folder. Browse through the available meshes by double-clicking them to preview.
+5. Pick your three favourite assets (a weapon, a piece of furniture, and a decorative prop) and note their Content Browser paths (right-click > Copy Reference).
 
 ### Success Criteria
 
-- You can place basic shapes from the Place Actors panel.
-- You can switch between translate (W), rotate (E), and scale (R) tools.
-- You can type exact values into the Details panel for precise positioning.
-- Your snowman figure is assembled with all three shapes stacked correctly.
+- At least one fantasy asset pack is imported into your project.
+- You can find and preview assets in the Content Browser.
+- You have the asset paths for three items ready for Exercise 3.
 
-### Bonus
+### Stretch Goal
 
-- Enable grid snapping (Ctrl while moving) and rebuild the snowman with all pieces aligned to a 10-unit grid.
+Import a second asset pack from a different category. More variety means more creative options when building your dungeons later.
 
 ---
 
-## Exercise 4: Create a Simple Landscape
+## Exercise 3: Populate Your Room with Python
 
-**Goal**: Create terrain using the Landscape tool and sculpt basic features.
+**Goal**: Use the Python console to place five different objects in your room.
 
 ### Steps
 
-1. Create a new Blank level (File > New Level > Empty Open World or Basic).
-2. Switch to the Landscape mode in the Modes panel (or press Shift + 2).
-3. In the "Manage" tab, leave the default settings and click "Create."
-4. A flat green landscape will appear. Switch to the "Sculpt" tab.
-5. Practice these sculpting operations:
-   - **Sculpt tool**: Left-click to raise terrain. Create a small hill.
-   - **Shift + left-click**: Lower terrain. Create a valley next to your hill.
-   - **Smooth tool**: Select the smooth tool and paint over the edges of your hill to soften them.
-   - **Flatten tool**: Select flatten and paint an area to create a flat plateau.
-6. Adjust your brush size (larger brush for broad strokes, smaller for details).
-7. Create a simple terrain layout: one hill, one valley, and one flat area.
-8. Add a Directional Light and a Sky Atmosphere to your level so you can see the terrain properly.
+1. Open the Python console in UE5.
+2. Using the asset paths from Exercise 2, write (or ask Claude to write) a Python script that places 5 objects in your room. Vary their positions so the room feels furnished. For example:
+   - A table in the centre
+   - A weapon on the table
+   - A torch or candelabra near one wall
+   - A barrel in the corner
+   - A decorative item by the door
+3. Run the script. Check the viewport.
+4. Some objects might be the wrong size or floating above the floor. Modify the script to adjust their scale and Z position (height) until they look right.
+5. Select individual Actors in the World Outliner and check their properties in the Details Panel. Notice how each one has a Location, Rotation, and Scale.
 
 ### Success Criteria
 
-- A landscape exists in your level.
-- You have sculpted at least one hill, one valley, and one flat area.
-- The terrain has smooth, natural-looking transitions (not blocky or harsh).
-- Lighting is in place so the terrain is clearly visible.
+- Five distinct objects are placed in the room, all via Python scripts.
+- Objects are positioned at floor level (not floating) and scaled appropriately.
+- The room looks like it could be the starting area of a dungeon, a study, a tavern back room, or whatever theme you chose.
 
-### Reflection Questions
+### Stretch Goal
 
-- How does brush size affect the look of your terrain?
-- Why is the smooth tool important after sculpting?
+Add rotation to some objects so they are not all facing the same direction. A barrel turned at an angle, a chair pulled away from a table. Small rotations make a scene feel lived-in rather than grid-aligned.
 
 ---
 
-## Exercise 5: Package a Build
+## Reflection
 
-**Goal**: Export your project as a standalone application that runs outside the editor.
+After completing all three exercises, fly through your room in the viewport and think about these questions:
 
-### Steps
-
-1. Open any project that has content in it (your snowman scene or landscape).
-2. Go to Project Settings (Edit > Project Settings).
-3. Under "Maps & Modes," set the "Game Default Map" to your current level.
-4. Under "Project > Description," give your project a name.
-5. Save all assets (Ctrl + Shift + S).
-6. Go to Platforms > Windows > Package Project (or your platform of choice).
-7. Choose an output folder on your desktop or a dedicated builds folder.
-8. Wait for the packaging process to complete. Watch the output log for errors.
-9. Once complete, navigate to the output folder and run the executable.
-
-### Success Criteria
-
-- The packaging process completes without errors.
-- You can find and run the standalone .exe file.
-- The game launches and shows your level.
-- You can close the game with Alt + F4 or the escape key.
-
-### Troubleshooting Tips
-
-- If packaging fails, check the output log (Window > Output Log) for red error messages.
-- Common fixes: save all assets, fix any Blueprint errors, make sure the default map is set.
-- A "Launch" test (Play > Launch on Device) is faster than full packaging for quick checks.
-
-### Bonus
-
-- Package for a different platform configuration (Shipping vs Development). Notice the difference in file size and the absence of debug tools in the Shipping build.
+- How does the Python console compare to dragging objects around by hand? When would each approach be useful?
+- What did the World Outliner and Details Panel teach you about how UE5 organises its world?
+- If you wanted to create 50 rooms like this (say, a procedural dungeon), which approach would scale better: manual placement or Python scripting?

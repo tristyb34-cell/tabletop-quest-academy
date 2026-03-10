@@ -1,43 +1,67 @@
-# Module 7: Resources - AI and Behavior Trees
+# Module 07: Resources - Enemy AI
 
-## Official UE5 Documentation
+## Behaviour Tree Tutorials
 
-- **AI Overview**: https://dev.epicgames.com/documentation/en-us/unreal-engine/artificial-intelligence-in-unreal-engine
-- **Behavior Trees**: https://dev.epicgames.com/documentation/en-us/unreal-engine/behavior-tree-in-unreal-engine---overview
-- **Behavior Tree Quick Start Guide**: https://dev.epicgames.com/documentation/en-us/unreal-engine/behavior-tree-in-unreal-engine---quick-start-guide
-- **Behavior Tree Node Reference**: https://dev.epicgames.com/documentation/en-us/unreal-engine/unreal-engine-behavior-tree-node-reference
-- **Blackboard**: https://dev.epicgames.com/documentation/en-us/unreal-engine/blackboard-in-unreal-engine
-- **Environment Query System**: https://dev.epicgames.com/documentation/en-us/unreal-engine/environment-query-system-in-unreal-engine
-- **EQS Quick Start**: https://dev.epicgames.com/documentation/en-us/unreal-engine/environment-query-system-quick-start-in-unreal-engine
-- **AI Perception**: https://dev.epicgames.com/documentation/en-us/unreal-engine/ai-perception-in-unreal-engine
-- **Navigation System**: https://dev.epicgames.com/documentation/en-us/unreal-engine/navigation-system-in-unreal-engine
+### Official AI Documentation
+**https://docs.unrealengine.com/5.0/en-US/behavior-tree-in-unreal-engine---overview/**
+The primary reference for Behaviour Trees in Unreal. Covers tree structure, node types (Selectors, Sequences, Tasks, Decorators, Services), Blackboards, and the AI Controller. Start here for the conceptual model.
 
-## Video Tutorials
+### Behaviour Tree Quick Start Guide
+**https://docs.unrealengine.com/5.0/en-US/behavior-tree-in-unreal-engine---quick-start-guide/**
+A hands-on walkthrough that builds a simple AI character from scratch. Covers creating the Blackboard, Behaviour Tree, AI Controller, and wiring them together. Good for following along step by step.
 
-- **Ryan Laley, UE5 AI Playlist**: Search "Ryan Laley UE5 AI" on YouTube. Covers Behavior Trees, Blackboards, EQS, and perception from beginner to advanced.
-- **Gorka Games, AI Series**: Search "Gorka Games UE5 AI Behavior Tree" on YouTube. Practical step-by-step approach with good explanations of each node type.
-- **Unreal Engine Official, AI Tutorials**: https://dev.epicgames.com/community/unreal-engine/learning - filter by AI topic for official tutorials and live training recordings.
-- **The Game Dev Cave, EQS Deep Dive**: Search "Game Dev Cave EQS UE5" on YouTube for a focused look at Environment Query System usage.
+### Ryan Laley's AI Tutorials (YouTube)
+**https://www.youtube.com/@RyanLaley**
+Practical, beginner-friendly tutorials covering Behaviour Trees, AI Perception, and NavMesh setup in UE5. His "AI Series" walks through building a patrol-and-chase enemy, which maps closely to what we build in this module.
 
-## Community and Forums
+---
 
-- **Unreal Engine AI Forums**: https://forums.unrealengine.com/ - search for "behavior tree" or "AI" in the forums for community solutions to common problems
-- **r/unrealengine (Reddit)**: https://www.reddit.com/r/unrealengine/ - search for AI-related posts; many developers share their setups and troubleshooting tips
-- **Unreal Slackers Discord**: Active community with a dedicated AI channel. Search for an invite link online.
+## Environment Query System (EQS)
 
-## Books and Articles
+### EQS Overview
+**https://docs.unrealengine.com/5.0/en-US/environment-query-system-in-unreal-engine/**
+EQS lets AI characters ask questions about their environment: "Where is the best cover position?" or "Which enemy is closest?" You can use EQS to make the goblin's combat positioning smarter, like finding the best flanking position or the safest retreat route. This is an advanced topic worth exploring after you have basic Behaviour Trees working.
 
-- **"Artificial Intelligence for Games" by Ian Millington**: Comprehensive textbook on game AI covering behavior trees, pathfinding, decision-making, and more. Not UE5-specific but the theory applies directly.
-- **"Game AI Pro" series** (Game AI Pro, Game AI Pro 2, Game AI Pro 3): Collections of short articles by professional game AI developers. Many chapters cover behavior trees and tactical AI. Free PDFs available at http://www.gameaipro.com/
-- **Gamasutra/Game Developer articles on Behavior Trees**: Search "behavior trees game AI" on https://www.gamedeveloper.com/ for practical articles from working developers.
+---
 
-## GAS + AI Integration
+## Navigation Mesh
 
-- **Tranek's GAS Documentation**: https://github.com/tranek/GASDocumentation - community-maintained GAS guide with a section on AI ability activation
-- **Dan's UE5 GAS Course Notes**: Search "UE5 GAS AI integration" for community blog posts on connecting Behavior Trees to the Gameplay Ability System
+### Navigation System Overview
+**https://docs.unrealengine.com/5.0/en-US/navigation-system-in-unreal-engine/**
+Documentation for the NavMesh, Nav Mesh Bounds Volume, navigation modifiers, and pathfinding settings. Covers how to mark areas as preferred or to be avoided, and how to handle dynamic obstacles.
 
-## Tools and Plugins
+---
 
-- **UE5 Built-in AI Debugger**: Press the apostrophe key (') during Play-In-Editor to access Behavior Tree, Blackboard, EQS, and perception debug views. No plugin needed.
-- **Visual Logger**: Built into UE5. Record and replay AI decisions over time. Access via Window > Developer Tools > Visual Logger.
-- **AI Navigation Debugger**: Press P in the viewport to toggle NavMesh visibility. Essential for diagnosing pathfinding issues.
+## AI Perception
+
+### AI Perception Component Documentation
+**https://docs.unrealengine.com/5.0/en-US/ai-perception-in-unreal-engine/**
+Reference for the sight, hearing, damage, and team senses. Covers configuration, stimulus sources, and how to respond to perception events in your AI Controller.
+
+---
+
+## Free Enemy Model Packs
+
+### Mixamo (Free Character Animations)
+**https://www.mixamo.com/**
+Free character models and animations from Adobe. You can find goblin-like characters, skeletons, and other fantasy creatures with pre-made patrol, attack, and death animations. Export as FBX and import into Unreal.
+
+### Unreal Marketplace Free Monthly Content
+**https://www.unrealengine.com/marketplace/en-US/free**
+Epic gives away free asset packs every month. Check regularly for enemy character packs, creature models, and animation sets. Past packs have included fantasy enemies with full animation blueprints.
+
+### Quaternius (Free Low-Poly Models)
+**https://quaternius.com/**
+Free low-poly 3D models including fantasy characters, monsters, and creatures. The style fits well with a stylised tabletop aesthetic. All models come with basic animations.
+
+---
+
+## Community
+
+### Unreal Engine AI Forum
+**https://forums.unrealengine.com/c/development-discussion/ai**
+Community discussions about AI implementation, Behaviour Tree patterns, and troubleshooting. Search for "behavior tree patrol" or "AI perception setup" for solutions to common problems.
+
+### r/unrealengine (Reddit)
+**https://www.reddit.com/r/unrealengine/**
+Search for "behavior tree beginner," "AI patrol," and "enemy AI combat" for community tutorials, architecture discussions, and debugging tips.

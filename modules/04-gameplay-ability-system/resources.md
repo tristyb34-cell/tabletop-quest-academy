@@ -1,72 +1,77 @@
-# Module 04: Resources - Gameplay Ability System
-
-## Essential Reading
-
-### Tranek's GAS Documentation (Community Wiki)
-**https://github.com/tranek/GASDocumentation**
-The single best resource for GAS. This community-maintained document covers every corner of the system with practical examples, architecture patterns, and explanations of internal behaviour. Read this cover to cover. It is effectively the unofficial manual that Epic never wrote. Pay special attention to the sections on Ability System Globals, prediction, and the recommended project setup patterns.
-
-### Epic's Official GAS Documentation
-**https://docs.unrealengine.com/5.0/en-US/gameplay-ability-system-for-unreal-engine/**
-The official docs cover the basics: setting up the ASC, creating abilities and effects, and configuring tags. They are lighter on practical patterns and architecture advice compared to Tranek's guide, but they are the authoritative source for API reference and intended usage.
+# Module 04: Resources
 
 ---
 
-## Video Tutorials
+## Turn-Based Combat Design
 
-### Reubs's GAS Tutorial Series (YouTube)
-**https://www.youtube.com/@Reubs**
-A thorough, project-based walkthrough of building an action RPG ability system from scratch. Reubs explains not just the "how" but the "why" behind each architectural decision. Covers attribute sets, abilities, effects, gameplay cues, and multiplayer replication. Highly recommended for visual learners who want to follow along step by step.
+### D&D 5th Edition Basic Rules (Free PDF)
+- **URL**: [https://dnd.wizards.com/what-is-dnd/basic-rules](https://dnd.wizards.com/what-is-dnd/basic-rules)
+- The official free rules for DnD 5e. Chapter 9 (Combat) covers initiative, actions, movement, attack rolls, and damage. This is the ruleset Tabletop Quest is inspired by, so it is worth reading for design reference.
 
-### Dan's GAS Course (The Game Dev Cave)
-**https://www.thegamedev.guru/**
-A structured course covering GAS from beginner to advanced. Includes sections on MMCs (Modifier Magnitude Calculations), Execution Calculations, and advanced stacking behaviour. Good for learners who prefer a course format over documentation.
+### Game Maker's Toolkit: "What Makes a Good Combat System?" (YouTube)
+- **URL**: [https://www.youtube.com/@GameMakersToolkit](https://www.youtube.com/@GameMakersToolkit)
+- Search for "turn based combat" on this channel. Excellent design analysis of what makes combat feel satisfying. Good for thinking about your own system's feel and flow.
 
-### LeafBranchGames GAS Videos
-**https://www.youtube.com/@LeafBranchGames**
-Focused, practical GAS tutorials that tackle specific problems: how to set up cooldowns, how to build a buff/debuff system, how to create projectile abilities. Useful as targeted references when you are working on a specific feature.
-
----
-
-## Sample Projects
-
-### Action RPG Sample Project (Epic Games)
-**https://docs.unrealengine.com/5.0/en-US/action-rpg-game-sample-project-unreal-engine/**
-Epic's own sample project demonstrating GAS in a Diablo-style action RPG. Includes a full attribute set, multiple ability types (melee, ranged, area-of-effect), inventory integration, and AI enemies using the ability system. Study the code structure, especially how they organise their effect and ability class hierarchies.
-
-### Lyra Starter Game
-**https://docs.unrealengine.com/5.0/en-US/lyra-sample-game-in-unreal-engine/**
-Epic's modern UE5 sample project. While it is a shooter, its GAS implementation demonstrates best practices for UE5, including the Enhanced Input System integration, modular ability activation, and Gameplay Cue management. The patterns here are directly applicable to any genre.
+### Extra Credits: "Turn-Based Combat" (YouTube)
+- **URL**: [https://www.youtube.com/@ExtraCredits](https://www.youtube.com/@ExtraCredits)
+- Short, approachable videos about game design principles. Their episodes on combat design, action economy, and enemy design are relevant to Tabletop Quest.
 
 ---
 
-## Reference Documentation
+## Grid-Based Movement in UE5
 
-### Gameplay Tags Documentation
-**https://docs.unrealengine.com/5.0/en-US/using-gameplay-tags-in-unreal-engine/**
-Deep dive into the tag system: how to define tags, query containers, use tag queries in abilities and effects, and manage tag hierarchies across your project.
+### UE5 Grid Snapping and Tile Placement
+- Use the built-in grid snapping (hold Ctrl while moving Actors) for manual tile alignment.
+- For automated grid creation, the Python console approach from the lesson is the most efficient method. Ask Claude for scripts tailored to your grid size and tile assets.
 
-### Gameplay Effects and Attributes
-**https://docs.unrealengine.com/5.0/en-US/gameplay-attributes-and-gameplay-effects-for-the-gameplay-ability-system-in-unreal-engine/**
-Official reference for attribute sets, effect modifiers, execution calculations, and the attribute aggregator system.
-
----
-
-## Community Resources
-
-### Unreal Source Discord - GAS Channel
-The Unreal Source community Discord has a dedicated GAS channel where experienced developers answer questions. Useful for debugging specific issues or getting architecture advice.
-
-### r/unrealengine (Reddit)
-Search for "GAS" or "Gameplay Ability System" posts. Many developers share their project architectures and solutions to common problems. The subreddit has a wealth of archived discussions on GAS-specific topics.
+### Pathfinding on a Grid
+- For basic grid movement, you can calculate distance between tiles using Manhattan distance: `abs(x2 - x1) + abs(y2 - y1)`.
+- For more advanced pathfinding (around obstacles), ask Claude to write an A* pathfinding plugin as a C++ Blueprint Function Library.
 
 ---
 
-## Recommended Study Order
+## Free Fantasy Character Models
 
-1. Start with Tranek's GAS Documentation (read the overview and setup sections)
-2. Follow along with Reubs's tutorial series to build a working prototype
-3. Study the Action RPG sample project for production patterns
-4. Reference Epic's official docs for specific API details
-5. Revisit Tranek's documentation for advanced topics (prediction, replication, execution calculations)
-6. Explore the Lyra project for modern UE5-specific patterns
+### Mixamo (Free Character Animations)
+- **URL**: [https://www.mixamo.com/](https://www.mixamo.com/)
+- Free character animations that can be applied to any humanoid model. Download idle, attack, walk, and death animations for your hero and goblin. Export as FBX for UE5.
+
+### Paragon Assets (Free on Fab)
+- Epic's retired Paragon game assets are available for free. High-quality characters with animations, suitable as hero placeholders.
+
+### Infinity Blade Assets (Free on Fab)
+- Fantasy characters, enemies, and weapons. Perfect for DnD-style combatants.
+
+### Quaternius (Free Low-Poly Models)
+- **URL**: [https://quaternius.com/](https://quaternius.com/)
+- Free low-poly fantasy characters, monsters, and props. The "Ultimate Animated Character" pack includes goblins, skeletons, and other RPG enemies.
+
+---
+
+## Blueprint Patterns Used in Combat
+
+### Timer by Function Name
+- Used for repeating actions (like damage-over-time effects).
+- **Set Timer by Function Name**: Calls a function at a regular interval.
+- **Clear Timer by Function Name**: Stops the timer.
+- Useful for: poison ticks, regeneration, countdown timers.
+
+### Arrays and Sorting
+- The `Combatants` array holds all characters in the fight.
+- Sorting by initiative can be done with a simple Blueprint loop, or ask Claude for a C++ sort helper.
+- **For Each Loop** iterates through every combatant for turn cycling.
+
+### Casting
+- When the combat manager references a generic Actor, it may need to **Cast** to `BP_CombatCharacter` to access combat-specific variables like HP, AC, and AttackModifier.
+- If the cast fails (the Actor is not a combat character), the "Cast Failed" pin fires, and you can handle it gracefully.
+
+---
+
+## Next Steps to Explore
+
+Once the basic combat works, here are features to consider adding later:
+
+- **Special abilities**: Fireball (area damage to all enemies), Heal (restore HP), Shield Bash (stun for one turn).
+- **Character classes**: Fighter (high HP, strong attacks), Wizard (low HP, powerful spells), Rogue (sneak attack bonus on first hit).
+- **Status effects**: Poisoned (take damage each turn), Stunned (skip your turn), Blessed (+2 to all rolls).
+- **Loot drops**: When an enemy is defeated, roll on the loot table from Module 03's loot plugin.

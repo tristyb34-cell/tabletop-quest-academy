@@ -1,143 +1,72 @@
-# Module 8: Quiz - UI with UMG
+# Module 08: Quiz - User Interface
 
-Test your understanding of Unreal Motion Graphics and UI design. Choose the best answer for each question.
+Test your understanding of UMG and UI design in Unreal Engine. Try to answer each question before revealing the answer.
 
 ---
 
-**Question 1: What is a Widget Blueprint in UMG?**
-
-A) A 3D mesh used for rendering text in the game world
-B) A special Blueprint type for defining interactive UI elements, similar to a Photoshop document where each layer responds to game data
-C) A shader that controls how UI elements are rendered on the GPU
-D) A configuration file that stores UI layout settings as JSON
+### Question 1
+What is a Widget Blueprint, and how does it differ from a regular Blueprint?
 
 <details>
 <summary>Answer</summary>
-B) A Widget Blueprint is a visual Blueprint for UI elements. You build your interface by layering and arranging widgets in the Designer tab and writing interaction logic in the Graph tab. Each widget can bind to and respond to game data.
+
+A Widget Blueprint is a specialised Blueprint designed for creating 2D user interface elements. It has a visual designer where you drag and drop UI components (text, images, buttons, progress bars, panels) and arrange them on a canvas. It also has a Graph tab for Blueprint logic, just like regular Blueprints.
+
+The key difference is that a Widget Blueprint represents a piece of UI that gets drawn on top of the 3D game world, not an actor that exists within it. You create an instance of a Widget Blueprint and add it to the player's viewport (screen). Regular Blueprints represent actors or objects in the 3D world. A Widget Blueprint handles things like button clicks, text display, and layout, while a regular Blueprint handles things like movement, collision, and gameplay logic.
 </details>
 
 ---
 
-**Question 2: Why are anchors important for UI layout?**
-
-A) They prevent widgets from being clickable
-B) They control the animation speed of widgets
-C) They determine how a widget stays positioned relative to the screen when the resolution changes, preventing broken layouts at different resolutions
-D) They connect widgets to gameplay variables
+### Question 2
+What are anchors in UMG, and why are they important?
 
 <details>
 <summary>Answer</summary>
-C) Anchors pin widgets to specific parts of the screen (top-left, center, bottom, stretch, etc.). Without proper anchoring, widgets that look perfect at 1080p will be misplaced or cut off at 4K or ultrawide resolutions. Always set anchors for every widget.
+
+Anchors define where a widget is positioned relative to its parent container. An anchor of (0, 0) means the widget is positioned relative to the top-left corner. An anchor of (1, 1) means it is relative to the bottom-right. An anchor of (0.5, 0.5) means it is centred.
+
+Anchors are important because they make your UI work across different screen resolutions and aspect ratios. If you anchor an HP bar to the bottom-left, it stays in the bottom-left whether the player is on a 1920x1080 monitor or a 2560x1440 ultrawide. Without proper anchoring, moving to a different resolution can push UI elements off-screen or stack them on top of each other. Anchoring is the foundation of responsive UI layout.
 </details>
 
 ---
 
-**Question 3: What is the difference between a Canvas Panel and a Vertical Box?**
-
-A) Canvas Panel arranges children automatically; Vertical Box requires manual positioning
-B) Canvas Panel allows free absolute positioning of children; Vertical Box automatically stacks children top to bottom
-C) Canvas Panel only works in 3D space; Vertical Box only works in 2D
-D) There is no difference; they are aliases for the same widget
+### Question 3
+What is the difference between property binding and event-driven updates for connecting UI to game data?
 
 <details>
 <summary>Answer</summary>
-B) Canvas Panel lets you place children at exact pixel coordinates with anchor-based positioning. Vertical Box stacks children automatically from top to bottom, handling spacing and alignment for you. Canvas Panel gives more freedom; Vertical/Horizontal Boxes give more consistency.
+
+Property binding evaluates a function every single frame to get the current value. You bind a progress bar's "Percent" property to a function that returns CurrentHP / MaxHP, and UMG calls that function every frame to update the display. This is simple to set up but can be inefficient when you have many bindings, because the work happens every frame regardless of whether the value changed.
+
+Event-driven updates only fire when the data actually changes. The game system dispatches an event (like "OnHPChanged") when HP is modified, and the UI widget listens for that event and updates itself only at that moment. This is more efficient because work only happens when needed, and it also allows you to trigger animations (like a smooth bar transition) at the exact moment of change rather than constantly checking.
+
+For a few simple bindings, either approach works. For a complex RPG UI with dozens of values, event-driven updates are the better choice.
 </details>
 
 ---
 
-**Question 4: What is the recommended approach for updating UI widgets when game data changes?**
-
-A) Bind every widget property to a function that runs every frame
-B) Use event-driven updates where gameplay dispatchers notify the UI only when data actually changes
-C) Rebuild the entire UI from scratch every frame
-D) Store all game data inside the widgets themselves
+### Question 4
+Why would you build the inventory slot as its own separate Widget Blueprint instead of just placing all the elements directly in the inventory grid?
 
 <details>
 <summary>Answer</summary>
-B) Event-driven updates are more efficient than per-frame bindings. The gameplay system fires a dispatcher (e.g., OnHealthChanged) and the widget updates only at that moment. Per-frame bindings work for simple cases but create unnecessary overhead when you have many widgets.
+
+Creating the inventory slot as a separate Widget Blueprint gives you reusability and maintainability. If you have 24 slots in the grid, you do not want to manually duplicate 24 copies of the same icon, button, and text layout. Instead, you create one InventorySlot widget and instantiate it 24 times.
+
+If you later need to change the slot's appearance (add a rarity border, change the font size, add a durability indicator), you change it in one place and all 24 slots update. If the elements were placed directly in the grid, you would need to make the same change 24 times.
+
+It also keeps the logic clean. Each slot widget handles its own click events, hover tooltips, and visual updates. The grid widget just manages the layout and passes item data to each slot. This separation of concerns makes the code easier to understand, test, and modify.
 </details>
 
 ---
 
-**Question 5: What is a Widget Component used for?**
-
-A) Adding extra functionality to an existing Widget Blueprint
-B) Displaying a Widget Blueprint as a 3D element in the game world, such as floating health bars above characters
-C) Compressing widget assets for faster loading
-D) Converting widget layouts to C++ code for performance
+### Question 5
+In the turn-order display, why is it better to highlight the active character with a visual change (size, border, colour) rather than just showing their name in text?
 
 <details>
 <summary>Answer</summary>
-B) A Widget Component renders a Widget Blueprint in 3D space. Set to "Screen" space, it always faces the camera (like a billboard), which is perfect for floating health bars, name plates, and damage numbers above characters.
-</details>
 
----
+Visual changes communicate instantly. The player can glance at the turn order display and identify the active character in a fraction of a second based on the larger frame and golden highlight. Reading text requires more cognitive effort and takes longer, especially during a fast-paced combat encounter where attention is split between the turn order, the battlefield, and the ability bar.
 
-**Question 6: What are the three input modes in UE5, and when would you use "UI Only"?**
-
-A) Mouse Mode, Keyboard Mode, Gamepad Mode; UI Only is for gamepad users
-B) Game Only, UI Only, Game and UI; UI Only is used when a full-screen menu is open and you want all input to go to the UI while blocking game input
-C) Edit Mode, Play Mode, Simulate Mode; UI Only is for the editor
-D) 2D Mode, 3D Mode, VR Mode; UI Only is for 2D games
-
-<details>
-<summary>Answer</summary>
-B) Game Only sends all input to the game (movement, camera). UI Only sends all input to the UI and blocks game input, which is what you want for full-screen menus like inventory or character sheets. Game and UI sends input to both, useful for clickable HUD elements during gameplay.
-</details>
-
----
-
-**Question 7: You close a full-screen menu but the player cannot move their character. What is the most likely cause?**
-
-A) The character's movement component was disabled
-B) The input mode was not switched back to Game Only when the menu was closed
-C) The Behavior Tree is blocking input
-D) The widget animation is still playing
-
-<details>
-<summary>Answer</summary>
-B) This is one of the most common UI bugs. When you open a menu, you switch to UI Only input mode. When closing it, you must call "Set Input Mode Game Only" to restore control. Forgetting this leaves the player stuck in UI mode with no game input.
-</details>
-
----
-
-**Question 8: How do you create a typewriter text effect in UMG?**
-
-A) Use a special "Typewriter Text" widget that is built into UE5
-B) Apply a material with a dissolve shader to a Text Block
-C) Store the full text in a variable, then use a timer to add one character at a time to the displayed text until all characters are shown
-D) Record the text as audio and play it back with synchronized subtitles
-
-<details>
-<summary>Answer</summary>
-C) There is no built-in typewriter widget. You implement it by storing the complete text, setting up a repeating timer (e.g., every 0.03 seconds), and progressively displaying more characters. Allow the player to skip the animation by pressing a key to show all text immediately.
-</details>
-
----
-
-**Question 9: What is the difference between setting a widget's visibility to "Hidden" versus "Collapsed"?**
-
-A) Hidden removes the widget from memory; Collapsed keeps it in memory
-B) Hidden makes the widget invisible but it still occupies layout space; Collapsed makes it invisible AND removes it from the layout so it takes up no space
-C) Hidden is for images; Collapsed is for text
-D) There is no functional difference between them
-
-<details>
-<summary>Answer</summary>
-B) "Hidden" hides the widget visually but it still affects layout, meaning other widgets position themselves as if it is still there. "Collapsed" hides the widget AND removes it from the layout calculation. Use Collapsed for conditional UI sections (like hiding a tab panel), and Hidden when you want to reserve the space.
-</details>
-
----
-
-**Question 10: You are designing the initiative tracker for a DnD combat system. It shows character portraits in turn order, with the active character highlighted. What UMG layout approach works best?**
-
-A) A Canvas Panel with each portrait manually positioned at absolute coordinates
-B) A Horizontal Box that dynamically generates portrait widgets from a sorted array, with the active portrait receiving a different style (larger scale, golden border, full opacity)
-C) A single Image widget that swaps between pre-rendered screenshots of the initiative order
-D) A 3D Widget Component placed in the game world above the combat area
-
-<details>
-<summary>Answer</summary>
-B) A Horizontal Box automatically arranges portraits left to right. Generating them from a sorted array means the order always matches the initiative rolls. Styling the active portrait differently (scale, border, opacity) provides clear visual feedback. This approach handles any number of combatants and updates dynamically when combatants are added, removed, or killed.
+Visual hierarchy, where the most important element is the most visually prominent, is a core principle of UI design. The active character is the most important piece of information in the turn order, so it should be the most visually distinct. Size difference, colour contrast, and animation (like a subtle pulse or glow) all contribute to making the active character immediately obvious without requiring the player to read anything. This reduces cognitive load and lets the player focus on tactical decisions instead of parsing the UI.
 </details>

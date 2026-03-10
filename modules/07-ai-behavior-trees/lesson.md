@@ -1,470 +1,1204 @@
-# Module 7: AI and Behavior Trees in UE5
+# Module 07: Enemy AI
 
-## Introduction
+## Building the Brains Behind Every Monster in Tabletop Quest
 
-Every great RPG needs enemies that think, allies that help, and NPCs that feel alive. In Unreal Engine 5, the AI system gives you the tools to build all of this. Think of it like writing a script for actors in a play: you define what they know, what they should do in different situations, and how they make decisions. The AI does not actually "think," but if you set up the decision-making well, it certainly looks like it does.
+Your Tabletop Quest world has a camera that zooms from tabletop to 3D, a combat system that switches between turn-based and real-time, and a player character who can swing swords and cast spells. But right now, every enemy in the world just stands there like a painted miniature that forgot to come alive. Time to fix that.
 
-For our DnD tabletop-to-3D RPG, AI is critical. Party members need to follow the player, choose abilities in combat, and respond to different behavior presets like "aggressive" or "support." Enemies need to patrol, detect threats, pick targets, and retreat when wounded. This module covers every piece of that puzzle.
+In this module, you will build the AI systems that power every enemy in Tabletop Quest. Not hypothetical enemies. Real ones: a Goblin Scout that patrols the forest and calls for backup, a Skeleton Warrior that guards dungeon corridors and chases intruders, and a Dragon Boss with multiple combat phases. By the end, your enemies will see, hear, think, and fight.
+
+UE5's AI framework is built around four core systems that work together:
+
+1. **AI Controllers** decide which Pawn to control and which Behavior Tree to run
+2. **Behavior Trees** define decision-making logic (what should this enemy do right now?)
+3. **Blackboards** store the AI's memory (what does this enemy know?)
+4. **AI Perception** gives enemies senses (what can this enemy see and hear?)
+
+Plus a fifth system, the **Environment Query System (EQS)**, which lets enemies evaluate the world around them (where should I stand? where should I flee to?).
+
+Think of it like building a puppet show. The AI Controller is the puppeteer's hands. The Behavior Tree is the script. The Blackboard is the puppeteer's notes scribbled in the margins. AI Perception is the puppeteer peeking through the curtain to see the audience. And EQS is the puppeteer's mental map of the stage.
+
+Let's build some enemies.
 
 ---
 
-## AI Controllers: The Brain Behind the Pawn
+## Part 1: AI Controllers
 
 ### What Is an AI Controller?
 
-In UE5, every character (Pawn) can have a Controller attached to it. Player characters get a Player Controller. AI characters get an AI Controller. Think of the AI Controller as a brain you strap onto a puppet. The puppet (the Pawn) has a body, animations, and stats. The brain (the AI Controller) decides what the puppet does.
+Every character in UE5 needs a Controller to make decisions. Player characters get a Player Controller (which reads your keyboard and mouse input). AI characters get an AI Controller (which reads Behavior Trees and Perception data instead).
 
 An AI Controller is a class that:
 
-- Possesses a Pawn (takes control of it)
-- Runs a Behavior Tree (the decision-making logic)
-- Manages a Blackboard (the AI's memory)
-- Handles perception (sight, hearing, damage sensing)
+- **Possesses** a Pawn (takes control of its movement, actions, and animations)
+- **Runs** a Behavior Tree (the decision-making brain)
+- **Manages** a Blackboard (the AI's working memory)
+- **Listens** to Perception stimuli (sight, hearing, damage)
 
-### Creating an AI Controller
+### Creating the Base Enemy AI Controller
 
-1. In the Content Browser, right-click and choose **Blueprint Class > AIController**
-2. Name it something like `BP_EnemyAIController`
-3. Open your AI Pawn's Blueprint and set the **AI Controller Class** property to your new controller
-4. In the AI Controller's **Event BeginPlay**, call **Run Behavior Tree** and pass in your Behavior Tree asset
+For Tabletop Quest, you will create a base AI Controller that all enemies share, then customize behavior through different Behavior Trees.
 
-When the AI Pawn spawns into the world, UE5 automatically creates an instance of the AI Controller and attaches it. The controller then kicks off the Behavior Tree and the AI starts making decisions.
+1. In the Content Browser, right-click: **Blueprint Class > AIController**
+2. Name it `BP_EnemyAIController_Base`
+3. Open it and go to the Event Graph
 
-### AI Controller vs Player Controller
+In **Event BeginPlay**, you need to do two things:
 
-The Player Controller listens for keyboard/mouse/gamepad input. The AI Controller listens for nothing from the outside. Instead, it runs internal logic. Both controllers can call the same functions on the Pawn (move, attack, use ability), which means you can design your Pawn to be controller-agnostic. This is especially useful for our game: a party member could be AI-controlled during combat but player-controlled during exploration.
+- Call **Use Blackboard** and pass in a Blackboard Data Asset (you will create this next)
+- Call **Run Behavior Tree** and pass in a Behavior Tree asset
 
----
+The reason you call Use Blackboard first is that the Behavior Tree needs a Blackboard to read and write data. If you run the tree before initializing the Blackboard, the tree has no memory to work with.
 
-## Behavior Trees: Decision Flowcharts
+### One Controller, Many Enemies
 
-### The Core Concept
+Here is a design decision that will save you hours: use a single AI Controller Blueprint for most standard enemies, and swap the Behavior Tree per enemy type. You can set the Behavior Tree as a variable on the enemy Pawn itself, then have the AI Controller read it during BeginPlay.
 
-A Behavior Tree is a visual flowchart that represents an AI's decision-making process. Picture a choose-your-own-adventure book: "If you see an enemy, go to page 12 (attack). If you are low on health, go to page 7 (retreat). Otherwise, go to page 3 (patrol)."
+In your enemy Pawn Blueprint:
+- Add a variable: `BehaviorTreeAsset` (type: Behavior Tree, Instance Editable)
+- Set it per enemy: Goblin Scout uses `BT_GoblinScout`, Skeleton Warrior uses `BT_SkeletonWarrior`
 
-Behavior Trees in UE5 execute from left to right, top to bottom. They run continuously, re-evaluating conditions and picking the right branch every tick (or at whatever frequency you configure). This makes them reactive: if something changes in the world, the AI responds on the next evaluation.
+In your AI Controller's BeginPlay:
+- Get the Controlled Pawn
+- Cast it to your base enemy class
+- Read the `BehaviorTreeAsset` variable
+- Pass it to Run Behavior Tree
 
-### Why Behavior Trees Over Other Approaches?
+This pattern means you create one AI Controller and dozens of enemy types, each with different behavior just by swapping the tree. Clean and scalable.
 
-You could write AI with simple if/else chains in code, but that gets messy fast. Behavior Trees give you:
+### AI Controller vs the Pawn
 
-- **Visual editing**: You can see the entire decision structure at a glance
-- **Modularity**: Each branch is independent; you can add, remove, or rearrange behaviors without breaking others
-- **Reusability**: Sub-trees can be shared across different AI types
-- **Debugging**: UE5 shows you in real-time which branch is active, which nodes succeeded or failed
-
-### Creating a Behavior Tree
-
-1. Right-click in the Content Browser: **Artificial Intelligence > Behavior Tree**
-2. Name it `BT_EnemyBasic`
-3. Double-click to open the Behavior Tree Editor
-
-You will see a single **Root** node. Everything branches downward from here.
+A common beginner mistake is putting AI logic directly into the enemy Pawn Blueprint. Don't do this. The Pawn is the body. The Controller is the brain. Keep them separate. If an enemy dies and respawns, you destroy the Pawn but the Controller pattern persists. If you want to temporarily "stun" an enemy, you can pause the Behavior Tree without touching the Pawn at all. Separation of concerns is not just good practice here; it is how UE5's AI system is designed to work.
 
 ---
 
-## The Blackboard: The AI's Whiteboard
+## Part 2: Blackboards (AI Memory)
 
 ### What Is a Blackboard?
 
-The Blackboard is a data container, a shared memory space that the Behavior Tree, AI Controller, and any other system can read from and write to. Think of it as a literal whiteboard in an office. The AI "writes notes" on it: "My target is Player1," "My health is 35%," "My home location is X,Y,Z." The Behavior Tree then reads those notes to make decisions.
+A Blackboard is a simple key-value store that acts as the AI's memory. Think of it like a chalkboard hanging on the wall that the AI can read from and write to. It stores things like:
 
-### Setting Up a Blackboard
+- "Who is my current target?" (Object reference)
+- "Where did I last see the player?" (Vector)
+- "Am I in combat?" (Bool)
+- "What is my home patrol point?" (Vector)
+- "How much HP do I have left?" (Float)
+
+Every Behavior Tree node can read from the Blackboard to make decisions and write to it to update the AI's state.
+
+### Creating the Tabletop Quest Enemy Blackboard
+
+Create a Blackboard Data Asset:
 
 1. Right-click in Content Browser: **Artificial Intelligence > Blackboard**
-2. Name it `BB_EnemyBasic`
-3. Open it and add keys:
-   - **TargetActor** (Object type, base class: Actor): Who the AI is targeting
-   - **PatrolLocation** (Vector): Where the AI should walk to next
-   - **HasLineOfSight** (Bool): Can the AI see its target right now?
-   - **HealthPercent** (Float): Current HP percentage
-   - **BehaviorPreset** (Enum or Name): Aggressive, Defensive, Support, etc.
+2. Name it `BB_EnemyBase`
 
-4. In your Behavior Tree asset, set the **Blackboard Asset** property to `BB_EnemyBasic`
+Add these keys (these are the ones every enemy in the game will use):
 
-### Writing to the Blackboard
+| Key Name | Type | Purpose |
+|----------|------|---------|
+| `TargetActor` | Object (Base Class: Actor) | The enemy the AI is currently targeting |
+| `TargetLocation` | Vector | Last known position of the target |
+| `HomeLocation` | Vector | Where this enemy spawns/patrols around |
+| `PatrolPoint` | Vector | Current patrol destination |
+| `IsInCombat` | Bool | Whether the AI is currently fighting |
+| `HasLineOfSight` | Bool | Whether the AI can currently see its target |
+| `HealthPercent` | Float | Current HP as a percentage (0.0 to 1.0) |
+| `AlertLevel` | Enum or Int | 0 = Idle, 1 = Suspicious, 2 = Alert, 3 = Combat |
+| `ShouldFlee` | Bool | Whether the AI should run away |
 
-From the AI Controller or any Blueprint with a reference to the controller, call **Set Value as [Type]** on the Blackboard. For example, when the AI Perception system detects a player, you would set the `TargetActor` key to that player's reference.
+You can always add more keys later for specific enemy types. The Dragon Boss will need keys like `CurrentPhase` and `BreathCooldown`. But this base set covers the fundamentals.
 
-### Reading from the Blackboard
+### Setting Blackboard Values
 
-Behavior Tree nodes read Blackboard keys directly. When you configure a task or decorator node, you will see dropdown fields where you pick which Blackboard key to use. The node then checks or uses that value during execution.
+Blackboard values can be set from multiple places:
 
----
+- **Behavior Tree tasks** (the most common way)
+- **AI Controller** (during initialization, e.g., setting HomeLocation to the spawn point)
+- **AI Perception** (when detecting or losing sight of a target)
+- **Gameplay events** (taking damage can update HealthPercent)
 
-## Node Types: The Building Blocks
+In the AI Controller's BeginPlay, after initializing the Blackboard, set the `HomeLocation` key to the Pawn's current location. This gives every enemy a "home" it can return to after chasing a player.
 
-Behavior Trees are built from four types of nodes. Understanding each one is like understanding the parts of a sentence: subjects, verbs, adjectives, and conjunctions.
+### Blackboard Decorators
 
-### Composite Nodes (The Decision Makers)
+Behavior Tree nodes can have **Blackboard Decorators** attached. These are conditions that check a Blackboard value before allowing a node to execute. For example:
 
-Composite nodes control the flow of execution. They have children and decide which children run and in what order.
+- A "Chase Player" branch has a decorator: `TargetActor IS SET`
+- A "Return Home" branch has a decorator: `IsInCombat == false`
+- A "Flee" branch has a decorator: `ShouldFlee == true`
 
-**Selector (OR logic):**
-A Selector tries each child from left to right and stops at the first one that succeeds. Think of it like trying keys on a keyring: you try one, if it does not work, you try the next, until one opens the door.
-
-Example: "Try to attack. If you cannot attack, try to find cover. If there is no cover, flee."
-
-**Sequence (AND logic):**
-A Sequence runs each child from left to right and stops if any child fails. Think of it like a recipe: do step 1, then step 2, then step 3. If any step fails, the whole sequence fails.
-
-Example: "Move to enemy AND play attack animation AND deal damage." If the AI cannot reach the enemy, the sequence fails at step 1 and the tree tries something else.
-
-**Simple Parallel:**
-Runs a main task and a background task simultaneously. The background task runs alongside the main task. Useful for things like "patrol while checking for enemies."
-
-### Task Nodes (The Actions)
-
-Task nodes are the leaves of the tree, the actual things the AI does. They sit at the bottom of branches and perform actions.
-
-**Built-in tasks:**
-- **Move To**: Navigate to a location or actor using the NavMesh
-- **Wait**: Pause for a specified duration
-- **Rotate to face BBEntry**: Turn to face a Blackboard target
-- **Play Animation**: Trigger an animation montage
-- **Run Sub-Tree**: Execute another Behavior Tree (great for modularity)
-
-**Custom tasks:**
-You will create many custom tasks. Right-click in the Content Browser: **Artificial Intelligence > Behavior Tree Task**. Common custom tasks for our game:
-
-- `BTTask_UseAbility`: Activate a Gameplay Ability from GAS
-- `BTTask_PickPatrolPoint`: Choose a random patrol location
-- `BTTask_EvaluateThreat`: Calculate which enemy to target
-- `BTTask_RollDice`: Simulate a DnD dice roll for an action check
-
-Each task returns one of three results: **Succeeded**, **Failed**, or **In Progress** (still working on it).
-
-### Decorator Nodes (The Conditions)
-
-Decorators attach to other nodes and act as gates or modifiers. They are like bouncers at a club: they check a condition and only let execution proceed if the condition is met.
-
-**Built-in decorators:**
-- **Blackboard-Based Condition**: Check if a Blackboard key is set, equals a value, etc. ("Is TargetActor set?")
-- **Is At Location**: Is the AI close enough to a point?
-- **Cooldown**: Prevent a branch from running again for X seconds
-- **Loop**: Repeat the child node N times or infinitely
-- **Time Limit**: Abort the child if it takes too long
-
-**Key feature: Observer Aborts**
-Decorators can abort running branches when conditions change. This is powerful. Set the **Observer Aborts** property to:
-- **None**: Only check the condition when the node is first entered
-- **Self**: Abort this branch if the condition becomes false
-- **Lower Priority**: Abort lower-priority branches (to the right) if this condition becomes true
-- **Both**: Abort both self and lower-priority branches
-
-Example: You have a Selector with two branches. The left branch says "If target visible, attack." The right branch says "Patrol." The left branch's decorator has Observer Aborts set to Lower Priority. While the AI is patrolling (right branch), if it suddenly spots a player, the decorator on the left branch activates, aborts the patrol, and the AI switches to attacking. This is how you get reactive AI.
-
-### Service Nodes (The Background Updaters)
-
-Services attach to composite nodes and tick at a regular interval while that composite is active. Think of them like a background process: while the AI is doing its thing, the service periodically updates information.
-
-Common uses:
-- **BTService_UpdateTargetDistance**: Every 0.5 seconds, recalculate distance to target and write it to the Blackboard
-- **BTService_CheckHealth**: Periodically check HP and update the HealthPercent Blackboard key
-- **BTService_ScanForEnemies**: Run a perception check and update the TargetActor key
-
-Services keep the Blackboard data fresh so that decorators and tasks always have current information to work with.
+Decorators are the primary way Behavior Trees make decisions. They turn your tree from a flat sequence of actions into a branching decision system.
 
 ---
 
-## A Complete Behavior Tree Example
+## Part 3: Behavior Trees
 
-Here is what a basic enemy Behavior Tree looks like, described as a hierarchy:
+### What Is a Behavior Tree?
+
+A Behavior Tree is a visual scripting system for AI decision-making. If Blueprints are "visual programming for game logic," then Behavior Trees are "visual programming for AI logic." They look similar (nodes connected by wires) but work very differently.
+
+A Behavior Tree is a tree structure with three types of nodes:
+
+1. **Composite Nodes** (control flow: decide which child to run)
+   - **Selector**: Try children left to right, stop at the first one that succeeds (like an OR gate)
+   - **Sequence**: Run children left to right, stop at the first one that fails (like an AND gate)
+   - **Simple Parallel**: Run two children simultaneously
+
+2. **Task Nodes** (leaf nodes: do something)
+   - **Move To**: Navigate to a location
+   - **Wait**: Pause for a duration
+   - **Play Animation**: Play an animation montage
+   - **Run EQS Query**: Ask the environment a question
+   - **Custom Tasks**: Your own Blueprint tasks (attack, cast spell, call for help)
+
+3. **Decorator Nodes** (conditions: should this branch run?)
+   - **Blackboard**: Check a Blackboard value
+   - **Cooldown**: Only allow execution every X seconds
+   - **Is At Location**: Check if the AI is near a point
+   - **Custom Decorators**: Your own conditions
+
+### How Execution Works
+
+A Behavior Tree runs continuously, starting from the Root node and flowing left to right, top to bottom. Every tick (every frame, or at a configurable interval), the tree evaluates from the root.
+
+Here is the key concept: **the leftmost branch has the highest priority**. A Selector node tries its leftmost child first. If that child's decorators pass and the child succeeds, the Selector ignores all other children. If the first child fails, it tries the second, and so on.
+
+This is how you create priority-based AI:
 
 ```
 Root
   Selector
-    [Decorator: BB "TargetActor" is set]
-    Sequence (COMBAT)
-      [Service: Update Target Distance, every 0.3s]
-      Selector
-        [Decorator: BB "HealthPercent" < 0.2]
-        Sequence (RETREAT)
-          BTTask_FindRetreatPoint
-          BTTask_MoveTo (RetreatPoint)
-          BTTask_UseAbility (HealSelf)
-
-        [Decorator: BB "TargetDistance" < AttackRange]
-        Sequence (ATTACK)
-          BTTask_RotateToFaceTarget
-          BTTask_UseAbility (BasicAttack)
-          BTTask_Wait (AttackCooldown)
-
-        Sequence (CHASE)
-          BTTask_MoveTo (TargetActor)
-
-    Sequence (PATROL)
-      BTTask_PickPatrolPoint
-      BTTask_MoveTo (PatrolLocation)
-      BTTask_Wait (2-5 seconds random)
+    [Priority 1] Flee (decorator: ShouldFlee == true)
+    [Priority 2] Combat (decorator: IsInCombat == true)
+    [Priority 3] Investigate (decorator: AlertLevel > 0)
+    [Priority 4] Patrol (always available, lowest priority)
 ```
 
-Reading this from left to right: The AI first checks if it has a target. If yes, it enters combat mode. In combat, it checks if health is low (retreat), then if it is in range (attack), then defaults to chasing. If there is no target at all, it patrols. The Service at the top of the combat branch keeps the distance data updated so the decorators can make accurate decisions.
+The AI will always try to flee first (if it should flee), then fight (if in combat), then investigate (if suspicious), and only patrol if nothing else is happening. This priority system is the backbone of every enemy AI in Tabletop Quest.
+
+### Creating Your First Behavior Tree
+
+1. Right-click in Content Browser: **Artificial Intelligence > Behavior Tree**
+2. Name it `BT_GoblinScout`
+3. Double-click to open the Behavior Tree Editor
+
+The editor shows a Root node. Drag off of it to create a **Selector** node. This is your top-level priority selector. From this Selector, create four children (each a **Sequence** node):
+
+1. **Flee Sequence** (leftmost, highest priority)
+2. **Combat Sequence**
+3. **Investigate Sequence**
+4. **Patrol Sequence** (rightmost, lowest priority)
+
+Each Sequence will contain the specific tasks for that behavior. We will fill these in as we build each enemy type.
+
+### Custom Behavior Tree Tasks
+
+UE5 comes with built-in tasks like Move To and Wait, but you will need custom tasks for Tabletop Quest. Custom tasks are Blueprint classes that inherit from `BTTask_BlueprintBase`.
+
+To create one:
+
+1. Right-click in Content Browser: **Blueprint Class > BTTask_BlueprintBase**
+2. Name it descriptively: `BTTask_AttackTarget`, `BTTask_CallForBackup`, `BTTask_BreathAttack`
+
+Inside the task, you override two events:
+
+- **Receive Execute AI**: Called when the task starts. Do your logic here (play animation, deal damage, spawn projectile). Call **Finish Execute** with Success or Failure when done.
+- **Receive Abort AI**: Called if the task is interrupted (higher priority branch activated). Clean up and call **Finish Abort**.
+
+For an attack task:
+1. Get the Controlled Pawn from the Owner Controller
+2. Get the Target from the Blackboard
+3. Check range (is the target close enough to hit?)
+4. Play the attack animation montage
+5. On animation notify (the "hit" frame), apply damage
+6. Call Finish Execute with Success
+
+### Services: Background Tasks on the Tree
+
+There is a fourth node type that runs alongside other nodes: **Services**. A Service is a background task that ticks at a regular interval while its parent branch is active. Think of it like a background process.
+
+Common uses:
+
+- **Update Blackboard values**: A service that checks the AI's health every 0.5 seconds and sets `ShouldFlee = true` when health drops below 25%
+- **Update target**: A service that re-evaluates which enemy to focus (the closest? the weakest? the one attacking an ally?)
+- **Range check**: A service that sets `IsInMeleeRange` or `IsInSpellRange` based on distance to target
+
+Services keep your tasks clean. Instead of every task checking "am I low on health?", a single service handles that check globally.
 
 ---
 
-## Environment Query System (EQS): Spatial Decision Making
+## Part 4: AI Perception
+
+### Giving Enemies Senses
+
+Right now, your enemies can think (Behavior Trees) and remember (Blackboards), but they are blind and deaf. AI Perception is the system that gives them senses.
+
+AI Perception works through two components:
+
+1. **AI Perception Component**: Added to the AI Controller. This is the "brain" that processes stimuli.
+2. **AI Perception Stimuli Source Component**: Added to actors that can be perceived (the player character, other enemies, noise sources). This is what generates stimuli.
+
+### Setting Up Sight
+
+For Tabletop Quest, every enemy needs sight at minimum. Here is how to set it up:
+
+1. Open your `BP_EnemyAIController_Base`
+2. Add an **AI Perception Component**
+3. In the Details panel, add a **Sense Config**: `AI Sight Config`
+4. Configure the sight parameters:
+
+| Parameter | Goblin Scout Value | Description |
+|-----------|-------------------|-------------|
+| Sight Radius | 1500 | How far the enemy can see (in UE units, roughly 15 meters) |
+| Lose Sight Radius | 2000 | How far before the enemy loses track of a seen target (should be larger than Sight Radius to prevent flickering) |
+| Peripheral Vision Half Angle | 60 | Field of view in degrees from the forward vector (60 = 120 degree cone) |
+| Auto Success Range | 200 | Distance at which detection is instant (enemy is right next to you) |
+| Max Age | 5.0 | How long a stimulus is remembered after losing sight |
+
+5. Set the **Dominant Sense** to `AISense_Sight`
+
+### Setting Up Hearing
+
+Hearing lets enemies react to sounds even when they cannot see the source. This is critical for stealth gameplay and for enemies in dungeons hearing combat in adjacent rooms.
+
+1. In the same AI Perception Component, add another Sense Config: `AI Hearing Config`
+2. Set **Hearing Range** to 2000 (adjustable per enemy type)
+
+To generate hearing stimuli, you use the **Report Noise Event** node in Blueprints. When the player attacks, opens a door, or breaks a crate, you fire a noise event at that location with a loudness value. Enemies within hearing range will receive the stimulus.
+
+For Tabletop Quest, you will want to report noise events for:
+- Player attacks (loudness 0.5)
+- Ability use, especially spells with loud effects (loudness 0.7)
+- Breaking objects like crates or doors (loudness 1.0)
+- Player footsteps when running (loudness 0.3, not when walking)
+- Other enemies dying (loudness 0.8, this is how nearby enemies "hear" combat)
+
+### Damage Sensing
+
+There is a third sense that is often overlooked: **Damage Sensing**. When an AI takes damage, it should immediately know something is attacking it, even if it cannot see or hear the attacker. This prevents the frustrating scenario where a Rogue backstabs a Skeleton and the Skeleton just stands there because the Rogue is behind its vision cone.
+
+Add a Damage sense config to the AI Perception Component. In the enemy Pawn's `AnyDamage` or `PointDamage` event, call **Report Damage Event** to generate the stimulus.
+
+### Handling Perception Events
+
+When the AI Perception Component detects something, it fires an event on the AI Controller: **On Target Perception Updated**. This event gives you:
+
+- The **Actor** that was perceived
+- The **Stimulus** information (which sense, location, strength, whether it is new or lost)
+
+In your AI Controller, bind to this event and update the Blackboard:
+
+- If a hostile actor is **newly perceived by sight**: Set `TargetActor`, set `IsInCombat` to true, set `AlertLevel` to 3
+- If the target is **lost from sight**: Set `HasLineOfSight` to false, set `TargetLocation` to the last known position
+- If a **noise is heard** and no current target: Set `AlertLevel` to 1, set `TargetLocation` to the noise location (this triggers the Investigate branch)
+- If **damage is sensed** and no current target: Set `TargetActor` to the damage instigator, set `IsInCombat` to true
+
+### The Perception Pipeline for Tabletop Quest
+
+Here is the full pipeline from stimulus to action:
+
+```
+Player swings sword (generates noise at location)
+    |
+    v
+AI Hearing detects noise stimulus
+    |
+    v
+On Target Perception Updated fires on AI Controller
+    |
+    v
+AI Controller sets AlertLevel = 1 on Blackboard
+    |
+    v
+Behavior Tree's Investigate branch decorator passes (AlertLevel > 0)
+    |
+    v
+AI moves to noise location, looks around
+    |
+    v
+AI Sight detects player at noise location
+    |
+    v
+On Target Perception Updated fires again (sight stimulus)
+    |
+    v
+AI Controller sets TargetActor, IsInCombat = true, AlertLevel = 3
+    |
+    v
+Behavior Tree's Combat branch decorator passes (IsInCombat == true)
+    |
+    v
+AI enters combat behavior (attack, chase, use abilities)
+```
+
+This pipeline gives you the classic stealth-game flow: noise attracts attention, investigation leads to sighting, sighting triggers combat. In Tabletop Quest, a Rogue player sneaking through a dungeon should feel the tension of this system. Walk slowly (no footstep noise) or run and risk alerting every Skeleton on the floor.
+
+### Affiliation: Friend or Foe
+
+AI Perception uses a **Team ID** system to determine who is friendly and who is hostile. Without this, enemies would perceive each other and try to fight their own allies.
+
+On the AI Controller, override the **Get Team Attitude Towards** function:
+
+- Same team = Friendly (ignore)
+- Different team = Hostile (detect and potentially attack)
+- Neutral = can see but won't attack unless provoked
+
+For Tabletop Quest:
+- Team 0: Player party
+- Team 1: Goblin faction
+- Team 2: Undead faction
+- Team 3: Dragon/Boss faction
+
+This lets you create scenarios where Goblins and Undead fight each other if they meet, which is exactly the kind of emergent gameplay that makes an open world RPG feel alive.
+
+---
+
+## Part 5: Building the Goblin Scout
+
+Time to build a real enemy. The Goblin Scout is the most common enemy in Tabletop Quest's early game. It patrols forest paths, has decent sight but poor hearing, attacks with a rusty shortsword, and runs to alert nearby goblins when it spots the player.
+
+### Goblin Scout Behavior Design
+
+Before writing any Blueprint logic, design the behavior on paper. For every enemy in the game, answer these five questions:
+
+1. **What does it do when idle?** Patrol between 2-4 waypoints near its spawn.
+2. **What does it do when suspicious?** Walk toward the noise location, look around for 3 seconds.
+3. **What does it do when it spots the player?** Run toward the nearest Goblin ally and "alert" them, then engage in combat.
+4. **How does it fight?** Melee attacks. If the player is too far, chase. If health drops below 25%, flee.
+5. **What does it do when fleeing?** Run away from the player toward its home location.
+
+Write these five answers for every enemy before you open the editor. It takes five minutes and saves hours of confused iteration.
+
+### The Goblin Scout Behavior Tree
+
+```
+BT_GoblinScout
+  Selector (Priority)
+    |
+    |-- Sequence [FLEE]
+    |     Decorator: Blackboard "ShouldFlee" == true
+    |     Task: Calculate Flee Point (EQS)
+    |     Task: Move To (flee point)
+    |     Task: Wait 2s (catch breath)
+    |     Task: Set Blackboard "ShouldFlee" = false
+    |
+    |-- Sequence [ALERT & COMBAT]
+    |     Decorator: Blackboard "IsInCombat" == true
+    |     Selector
+    |       |-- Sequence [ALERT ALLIES]
+    |       |     Decorator: Blackboard "HasAlertedAllies" == false
+    |       |     Task: Find Nearest Ally (EQS)
+    |       |     Task: Move To (ally location)
+    |       |     Task: BTTask_AlertNearbyEnemies
+    |       |     Task: Set Blackboard "HasAlertedAllies" = true
+    |       |
+    |       |-- Sequence [MELEE ATTACK]
+    |             Task: Move To (TargetActor, acceptable radius: 150)
+    |             Task: BTTask_MeleeAttack
+    |             Task: Wait 0.5s (attack cooldown)
+    |
+    |-- Sequence [INVESTIGATE]
+    |     Decorator: Blackboard "AlertLevel" > 0
+    |     Task: Move To (TargetLocation)
+    |     Task: BTTask_LookAround (rotate 180 degrees over 3 seconds)
+    |     Task: Set Blackboard "AlertLevel" = 0
+    |
+    |-- Sequence [PATROL]
+          Task: BTTask_GetNextPatrolPoint
+          Task: Move To (PatrolPoint)
+          Task: Wait (random 2-5 seconds)
+```
+
+Let's walk through what happens when a player enters the Goblin's patrol area:
+
+1. The Goblin is in the Patrol branch, walking between waypoints
+2. The player runs nearby, generating a footstep noise event
+3. AI Perception catches the noise, the Controller sets `AlertLevel = 1`
+4. The tree re-evaluates. The Investigate branch's decorator passes (AlertLevel > 0). Investigate has higher priority than Patrol, so it activates.
+5. The Goblin walks to the noise location and looks around
+6. While looking around, AI Sight detects the player. The Controller sets `IsInCombat = true`.
+7. The tree re-evaluates. The Combat branch's decorator passes. Combat has higher priority than Investigate.
+8. The Goblin has not alerted allies yet (`HasAlertedAllies == false`), so the Alert Allies sub-branch activates first
+9. The Goblin sprints to the nearest ally, alerts them, then sets `HasAlertedAllies = true`
+10. On the next evaluation, the Alert Allies decorator fails (already alerted), so the Melee Attack sub-branch activates
+11. The Goblin chases and attacks the player
+12. A Service on the Combat branch checks health every 0.5s. When health drops below 25%, it sets `ShouldFlee = true`
+13. The Flee branch's decorator passes. Flee has the highest priority, overriding Combat.
+14. The Goblin runs away
+
+That is a complete, believable enemy behavior built from simple building blocks.
+
+### Building the Alert System
+
+The `BTTask_AlertNearbyEnemies` task is unique to the Goblin Scout. When executed, it:
+
+1. Gets all actors within a radius (500 units) with the tag "Enemy"
+2. For each found enemy, gets their AI Controller
+3. Sets their Blackboard `TargetActor` to the Goblin Scout's current target
+4. Sets their `AlertLevel` to 3
+5. Sets their `IsInCombat` to true
+
+This creates a chain reaction. One Goblin spots the player, runs to tell its friends, and suddenly the whole camp is on alert. This is the kind of emergent behavior that makes enemies feel alive.
+
+You can also add a **shout animation** and a **sound cue** when alerting. The Goblin raises its arm, screams, and all nearby Goblins turn toward the player. Players learn that killing the scout quietly (before it shouts) is tactically better than charging in. The AI system creates stealth gameplay without you coding a single stealth mechanic.
+
+### Building the Patrol System
+
+The `BTTask_GetNextPatrolPoint` task needs patrol points to move between. There are two approaches:
+
+**Approach 1: Spline Patrol Path**
+
+Place a Spline actor in the level that defines the patrol route. The Goblin follows the spline. This gives you precise control over exactly where the Goblin walks.
+
+1. Create a Blueprint Actor called `BP_PatrolPath` with a Spline Component
+2. In the level, place a `BP_PatrolPath` and shape the spline along the desired patrol route
+3. On the Goblin Pawn, add a variable `PatrolPath` (type: BP_PatrolPath, Instance Editable)
+4. In the editor, assign the patrol path to the Goblin
+5. The `BTTask_GetNextPatrolPoint` task reads the next point on the spline and writes it to the Blackboard
+6. Track which spline point the Goblin is heading toward with an integer index on the Blackboard
+
+**Approach 2: Random Points Near Home**
+
+For less structured patrol behavior (wandering), use the navigation system to find random reachable points near the enemy's home location.
+
+1. In the task, call **Get Random Reachable Point in Radius** with the `HomeLocation` and a radius (e.g., 800 units)
+2. Write the result to the `PatrolPoint` Blackboard key
+
+For Tabletop Quest, use Approach 1 for enemies that guard specific routes (dungeon corridors, camp perimeters) and Approach 2 for enemies that wander freely (forest creatures, idle town guards).
+
+### Goblin Scout Perception Settings
+
+| Parameter | Value | Reasoning |
+|-----------|-------|-----------|
+| Sight Radius | 1500 | Forest canopy limits long-range visibility |
+| Lose Sight Radius | 2000 | Slight buffer so the Goblin does not instantly forget you |
+| Peripheral Vision | 45 degrees | Goblins are focused forward, sneaking behind them is viable |
+| Hearing Range | 800 | Poor hearing, relies more on sight |
+| Auto Success Range | 200 | If you are right next to a Goblin, it sees you no matter what |
+
+### Goblin Variants
+
+Once the base Goblin Scout works, you can create variants just by adjusting the Behavior Tree and perception settings:
+
+| Variant | Difference from Scout |
+|---------|----------------------|
+| **Goblin Archer** | Stays at range (800+ units from target), uses ranged attack task, flees if player gets too close |
+| **Goblin Shaman** | Stays behind melee allies, heals Goblins below 50% HP, casts poison bolt every 8 seconds |
+| **Goblin Brute** | No flee behavior at all, higher damage, slower movement, breaks through player formations |
+
+Each variant shares the same AI Controller and base Blackboard. Only the Behavior Tree and a few perception settings change.
+
+---
+
+## Part 6: Building the Skeleton Warrior
+
+The Skeleton Warrior is a dungeon enemy. Unlike the Goblin, which patrols outdoors and calls for help, the Skeleton stands guard at a fixed post and relentlessly chases any intruder that enters its territory. It does not flee, because skeletons have no sense of self-preservation. It does not call for allies, because skeletons are solitary sentinels.
+
+### Skeleton Warrior Behavior Design
+
+1. **Idle**: Stand at guard post (no patrol, just idle animation with occasional head turn)
+2. **Suspicious**: Turn toward noise source, take one step forward, wait
+3. **Combat**: Chase the player aggressively. If the player leaves the Skeleton's territory (a defined radius around the guard post), the Skeleton returns to its post.
+4. **Special**: The Skeleton has a "Shield Block" ability it uses when the player is attacking. This makes it feel reactive.
+5. **Flee**: Never. Skeletons fight until destroyed.
+
+### The Skeleton Warrior Behavior Tree
+
+```
+BT_SkeletonWarrior
+  Selector (Priority)
+    |
+    |-- Sequence [RETURN TO POST]
+    |     Decorator: Blackboard "IsInCombat" == true
+    |     Decorator: Custom "Is Target Out of Territory" (distance from HomeLocation > 2000)
+    |     Task: Set Blackboard "IsInCombat" = false, "TargetActor" = None
+    |     Task: Move To (HomeLocation)
+    |     Task: BTTask_IdleAtPost
+    |
+    |-- Sequence [COMBAT]
+    |     Decorator: Blackboard "IsInCombat" == true
+    |     Selector
+    |       |-- Sequence [SHIELD BLOCK]
+    |       |     Decorator: Custom "Is Target Attacking"
+    |       |     Decorator: Cooldown 3.0s
+    |       |     Task: BTTask_ShieldBlock
+    |       |
+    |       |-- Sequence [HEAVY STRIKE]
+    |       |     Decorator: Cooldown 6.0s
+    |       |     Task: Move To (TargetActor, acceptable radius: 150)
+    |       |     Task: BTTask_HeavyStrike
+    |       |
+    |       |-- Sequence [BASIC ATTACK]
+    |             Task: Move To (TargetActor, acceptable radius: 150)
+    |             Task: BTTask_MeleeAttack
+    |             Task: Wait 0.8s (slower than Goblin, heavier weapon)
+    |
+    |-- Sequence [INVESTIGATE]
+    |     Decorator: Blackboard "AlertLevel" > 0
+    |     Task: BTTask_TurnToward (TargetLocation)
+    |     Task: Move To (TargetLocation, acceptable radius: 100)
+    |     Task: Wait 2.0s
+    |     Task: Set Blackboard "AlertLevel" = 0
+    |
+    |-- Sequence [GUARD]
+          Task: BTTask_IdleAtPost (idle animation, occasional head turn)
+          Task: Wait (random 3-8 seconds)
+```
+
+Notice the differences from the Goblin Scout: no Flee branch, no Alert Allies branch, and a new Return to Post branch at the top. The Return to Post branch is the highest priority after combat conditions are checked. This means if the player lures the Skeleton far enough from its post, it abandons the chase and walks home. This creates the "territory leash" behavior common in dungeon games.
+
+### Territory System
+
+The "Return to Post" behavior is what makes the Skeleton feel like a guardian rather than a mindless chaser. Here is how to implement the territory check:
+
+Create a custom decorator: `BTDecorator_IsTargetOutOfTerritory`
+
+1. Override **Perform Condition Check AI**
+2. Get the AI Controller's Controlled Pawn
+3. Get `HomeLocation` from the Blackboard
+4. Get `TargetActor` from the Blackboard
+5. Calculate the distance between `TargetActor` and `HomeLocation`
+6. If distance > territory radius (a variable, default 2000): return True (target has left territory)
+7. Else: return False
+
+This creates interesting tactical gameplay. Players can kite a Skeleton out of its territory, forcing it to give up the chase and walk back to its post. A Rogue could use this to bait the Skeleton away from a treasure chest, grab the loot, and sneak past.
+
+### Shield Block Mechanic
+
+The `BTTask_ShieldBlock` task does three things:
+
+1. Plays a shield-raise animation
+2. Applies a temporary damage reduction (reduce incoming damage by 75% for 1 second)
+3. Plays a block VFX (sparks on shield)
+
+The decorator `Is Target Attacking` checks whether the player character is currently playing an attack montage. This makes the Skeleton feel reactive rather than random. It blocks when you attack, not at random intervals.
+
+The Cooldown decorator (3 seconds) prevents the Skeleton from blocking every single attack. The player learns the pattern: attack, get blocked, wait for cooldown, attack again during the window. This is emergent combat depth from simple AI rules.
+
+### Skeleton Perception Settings
+
+| Parameter | Value | Reasoning |
+|-----------|-------|-----------|
+| Sight Radius | 1200 | Dungeons are dark, shorter sight range |
+| Lose Sight Radius | 1600 | Buffer zone |
+| Peripheral Vision | 70 degrees | Wider FOV than Goblins, harder to sneak past |
+| Hearing Range | 600 | Poor hearing (no ears), relies heavily on sight and damage sensing |
+| Damage Sense | Enabled | Skeletons always know when they are hit |
+| Auto Success Range | 300 | Slightly larger than Goblins due to dungeon proximity |
+
+---
+
+## Part 7: Environment Query System (EQS)
 
 ### What Is EQS?
 
-EQS is a system for asking spatial questions about the world. "Where is the best cover position?" "Which enemy is closest?" "Where should I stand to cast this area spell?" Think of EQS as giving your AI a bird's-eye view and a ruler. It generates a grid of test points in the world, scores each point based on criteria you define, and returns the best one.
+The Environment Query System lets AI characters ask questions about the world around them. Instead of hardcoding "move to position X," you ask "find the best position that satisfies these criteria."
 
-### How EQS Works
+Examples of questions EQS can answer:
 
-1. **Generator**: Creates the test points. Common generators:
-   - **Points: Grid**: A grid of points around a location
-   - **Points: Circle**: Points arranged in a ring
-   - **Points: Donut**: Points between an inner and outer radius
-   - **Actors of Class**: All actors of a certain type in the world
+- "Where is the best place to flee to?" (far from the player, reachable, not a dead end)
+- "Which ally is closest to me?" (for the Goblin Scout's alert behavior)
+- "Where should I stand to breathe fire?" (far enough for the cone attack, clear line of sight)
+- "Where is cover?" (behind obstacles, out of player's line of sight)
 
-2. **Tests**: Score each point. Common tests:
-   - **Distance**: How far is this point from something? (Prefer closer or farther)
-   - **Trace**: Can I see this point from where I am? (Line of sight check)
-   - **Pathfinding**: Can I actually walk to this point? How far is the path?
-   - **Dot Product**: Is this point in front of me or behind me?
+Think of EQS like a Google search for locations. You type in what you want (criteria), and EQS returns the best results (positions in the world).
 
-3. **Result**: The point with the highest combined score wins.
+### EQS Concepts
 
-### Creating an EQS Query
+An EQS Query has three parts:
 
-1. Right-click in Content Browser: **Artificial Intelligence > Environment Query**
-2. Name it `EQS_FindCover`
-3. Add a Grid generator centered on the AI (the Querier)
-4. Add a Distance test: prefer points closer to the AI (do not run too far for cover)
-5. Add a Trace test from the enemy: prefer points the enemy CANNOT see (this is what makes it "cover")
-6. Add a Pathfinding test: filter out points the AI cannot reach
+1. **Generator**: Creates a set of test points or actors
+   - Points on a grid around the querier
+   - Points on a ring (donut) at a specific distance
+   - All actors of a class (find all Goblin allies)
+   - Points along a pathfinding route
+   - Points on a circle at specific angles
 
-### Using EQS in Behavior Trees
+2. **Tests**: Score or filter each generated item
+   - Distance test: Score based on distance to a context (closer = higher, or farther = higher)
+   - Trace test: Can the AI see this point? Is the path clear?
+   - Dot product test: Is this point in front of me or behind me?
+   - Pathfinding test: Can the AI actually reach this point?
+   - Custom tests: Any condition you can code
 
-Create a custom task `BTTask_RunEQSQuery`. Use the **Run EQS Query** node, pass in the query asset, and store the result in a Blackboard key. Then a subsequent Move To task navigates to that location.
+3. **Contexts**: Reference points for tests
+   - The Querier (the AI running the query)
+   - A Blackboard entry (e.g., the TargetActor)
+   - A custom context (e.g., all allies within 1000 units)
 
-### EQS for Our Game
+### Building the Goblin Flee Query
 
-EQS is perfect for tactical combat on a grid:
-- **Find Cover**: Grid-based query that scores tiles by line-of-sight blocking
-- **Find Flanking Position**: Score tiles that are behind the target relative to the target's facing direction
-- **Find Healing Target**: Score party members by how low their health is
-- **Find Area Spell Position**: Score locations where the area of effect would hit the most enemies
+The Goblin Scout needs to find a good place to run to when its health is low. "Good" means: far from the player, reachable by navigation, and roughly in the direction of the Goblin's home location.
+
+Create an EQS Query: `EQS_FindFleePoint`
+
+**Generator**: Points on a Grid
+- Grid half-size: 1000
+- Space between points: 200
+- Generated around: The Querier (the Goblin)
+
+**Test 1**: Distance to Player (TargetActor)
+- Score: The farther from the player, the higher the score
+- Filter: Minimum distance 500 (do not pick points too close)
+
+**Test 2**: Distance to Home (HomeLocation from Blackboard)
+- Score: The closer to home, the higher the score
+- Weight: 0.5 (less important than fleeing from the player)
+
+**Test 3**: Pathfinding
+- Filter: Only include points the AI can actually navigate to
+- This prevents the AI from trying to flee through walls or off cliffs
+
+**Test 4**: Trace to Player
+- Filter: Prefer points where the Goblin breaks line of sight (trace fails = obstacle between Goblin and player)
+- Weight: 0.3
+
+The EQS system scores every generated point, and the Goblin moves to the highest-scoring point. The result is a Goblin that intelligently runs away: heading toward home, breaking line of sight when possible, and always picking a reachable destination.
+
+### Building the Dragon Positioning Query
+
+For the Dragon Boss (which you will build next), EQS answers a different question: "Where should I stand to use my breath attack?"
+
+Create an EQS Query: `EQS_DragonBreathPosition`
+
+**Generator**: Points on a Ring
+- Inner radius: 800
+- Outer radius: 1200
+- Generated around: The TargetActor (the player)
+
+**Test 1**: Trace to Target
+- Filter: Must have clear line of sight to the player (the breath attack needs a clear path)
+
+**Test 2**: Dot Product (Querier forward direction vs. direction to generated point)
+- Score: Prefer points roughly in front of the Dragon (so it does not need a 180-degree turn)
+
+**Test 3**: Pathfinding
+- Filter: Dragon must be able to walk there (no lava pools, no walls)
+
+This query finds the ideal position for the Dragon to stand at a medium distance from the player, with a clear line of fire, without requiring a big turn. It makes the Dragon feel like it is tactically positioning itself rather than randomly walking around.
+
+### Running EQS from a Behavior Tree
+
+To use an EQS Query in a Behavior Tree:
+
+1. Add a **Run EQS Query** task node
+2. Set the Query Template to your EQS asset
+3. Set the Blackboard Key to write the result to (e.g., `PatrolPoint` or a custom `FleePoint`)
+4. The task succeeds if a valid point is found, fails if no points pass all filters
+5. Follow it with a **Move To** task that reads the same Blackboard key
+
+### EQS Debugging
+
+Press the apostrophe key (`) during PIE to open the Gameplay Debugger, then select an AI character. The EQS tab shows all recent queries with colored dots:
+
+- **Green dots**: High-scoring positions (good candidates)
+- **Red dots**: Low-scoring or filtered-out positions
+- **Blue dot**: The selected winner
+
+This visualization is invaluable. If your Goblin is fleeing toward the player instead of away, the EQS debug view will show you exactly why (maybe the Distance test weight is inverted).
 
 ---
 
-## AI Perception: Sight, Sound, and Damage
+## Part 8: Building the Dragon Boss
 
-### The AI Perception Component
+The Dragon is Tabletop Quest's first boss encounter. It sits at the end of a dungeon, guarding a treasure hoard. Unlike regular enemies, the Dragon has **phases** that change its behavior as the fight progresses. Think of the Dragon as three enemies in one: a slow bruiser, an enraged fighter, and an aerial bomber.
 
-Before the AI can make decisions, it needs to perceive the world. UE5's AI Perception system handles this. Add an **AI Perception Component** to your AI Controller or Pawn.
+### Dragon Boss Design
 
-### Sight Configuration
+| Phase | HP Range | Behavior |
+|-------|----------|----------|
+| Phase 1: Grounded | 100% to 60% | Melee attacks (claw swipe, tail sweep), occasional breath attack. Slow, intimidating. |
+| Phase 2: Enraged | 60% to 30% | Faster attacks, more frequent breath attacks, summons 2 Skeleton minions. Roar stagger. |
+| Phase 3: Desperate | 30% to 0% | Takes flight (new movement pattern), dive bomb attacks, continuous breath sweeps. |
 
-- **Sight Radius**: How far the AI can see (e.g., 2000 units)
-- **Lose Sight Radius**: Distance at which the AI loses track of a seen target (usually slightly more than sight radius, like 2200)
-- **Peripheral Vision Angle**: Field of view in degrees (e.g., 90 degrees for a 180-degree cone)
-- **Auto Succeed Range**: Distance within which sight always succeeds regardless of angle
+Each phase transition should feel like a mini-cutscene. The Dragon roars, the camera shakes, particles erupt, and the music shifts. This is where the cinematic camera system from Module 06 connects to AI.
 
-### Hearing Configuration
+### Dragon Blackboard
 
-- Register sounds with the **Report Noise Event** node
-- Footsteps, spellcasting, and combat sounds can alert nearby AI
-- Configure hearing range per AI type (a guard has better hearing than a zombie)
+The Dragon needs additional Blackboard keys beyond the base enemy set:
 
-### Damage Perception
+| Key Name | Type | Purpose |
+|----------|------|---------|
+| `CurrentPhase` | Int | 1, 2, or 3 |
+| `BreathCooldown` | Bool | Whether breath attack is on cooldown |
+| `HasSummonedMinions` | Bool | Whether Phase 2 minions have been spawned |
+| `IsFlying` | Bool | Whether the Dragon is airborne (Phase 3) |
+| `DiveBombTarget` | Vector | Where the Dragon will dive to |
+| `CircleAngle` | Float | Current angle in the aerial circle pattern |
 
-- When the AI takes damage, it can auto-detect the source
-- Useful for "who hit me?" reactions even if the attacker is not visible
+Create `BB_DragonBoss` as a child Blackboard that inherits from `BB_EnemyBase` and adds these extra keys.
 
-### Perception Events
-
-The AI Perception Component fires an **On Target Perception Updated** event. This is where you write Blackboard values:
+### Dragon Behavior Tree
 
 ```
-On Perception Updated:
-  If stimulus = Sight AND successfully sensed:
-    Set BB "TargetActor" = sensed actor
-    Set BB "HasLineOfSight" = true
-  If stimulus = Sight AND lost:
-    Set BB "HasLineOfSight" = false
-    (optionally clear TargetActor after a timeout)
+BT_DragonBoss
+  Selector (Priority)
+    |
+    |-- Sequence [PHASE 3: AERIAL]
+    |     Decorator: Blackboard "CurrentPhase" == 3
+    |     Selector
+    |       |-- Sequence [DIVE BOMB]
+    |       |     Decorator: Cooldown 8.0s
+    |       |     Task: BTTask_TakeOff (if not already flying)
+    |       |     Task: EQS_DragonDiveBombTarget (find impact point near player)
+    |       |     Task: BTTask_DiveBomb (fly to height, then dive to target)
+    |       |
+    |       |-- Sequence [AERIAL BREATH SWEEP]
+    |       |     Decorator: Cooldown 5.0s
+    |       |     Task: BTTask_AerialBreathSweep (fly in arc, breathe fire along ground)
+    |       |
+    |       |-- Sequence [CIRCLE]
+    |             Task: EQS_DragonCirclePoint (orbit above the arena)
+    |             Task: BTTask_FlyTo (circle point)
+    |
+    |-- Sequence [PHASE 2: ENRAGED]
+    |     Decorator: Blackboard "CurrentPhase" == 2
+    |     Selector
+    |       |-- Sequence [SUMMON MINIONS]
+    |       |     Decorator: Blackboard "HasSummonedMinions" == false
+    |       |     Task: BTTask_DragonRoar (animation + stagger nearby players)
+    |       |     Task: BTTask_SummonMinions (spawn 2 Skeleton Warriors)
+    |       |     Task: Set Blackboard "HasSummonedMinions" = true
+    |       |
+    |       |-- Sequence [BREATH ATTACK]
+    |       |     Decorator: Blackboard "BreathCooldown" == false
+    |       |     Decorator: Custom "Target in Breath Range" (distance 400 to 1200)
+    |       |     Task: EQS_DragonBreathPosition (find position)
+    |       |     Task: Move To (breath position)
+    |       |     Task: BTTask_BreathAttack (cone damage)
+    |       |     Task: Set Blackboard "BreathCooldown" = true
+    |       |     Task: Wait 4.0s
+    |       |     Task: Set Blackboard "BreathCooldown" = false
+    |       |
+    |       |-- Sequence [ENRAGED MELEE]
+    |             Task: Move To (TargetActor, acceptable radius: 200)
+    |             Task: Selector
+    |               |-- BTTask_TailSweep (Decorator: Cooldown 3.0s)
+    |               |-- BTTask_ClawSwipe
+    |
+    |-- Sequence [PHASE 1: GROUNDED]
+          Decorator: Blackboard "CurrentPhase" == 1
+          Selector
+            |-- Sequence [BREATH ATTACK]
+            |     Decorator: Blackboard "BreathCooldown" == false
+            |     Decorator: Cooldown 10.0s (longer cooldown in Phase 1)
+            |     Task: EQS_DragonBreathPosition
+            |     Task: Move To (breath position)
+            |     Task: BTTask_BreathAttack
+            |     Task: Set Blackboard "BreathCooldown" = true
+            |     Task: Wait 8.0s
+            |     Task: Set Blackboard "BreathCooldown" = false
+            |
+            |-- Sequence [TAIL SWEEP]
+            |     Decorator: Custom "Target Behind Me" (dot product check)
+            |     Decorator: Cooldown 5.0s
+            |     Task: BTTask_TailSweep
+            |
+            |-- Sequence [BASIC MELEE]
+                  Task: Move To (TargetActor, acceptable radius: 250)
+                  Task: Selector
+                    |-- BTTask_ClawSwipe (Decorator: Cooldown 2.0s)
+                    |-- BTTask_BasicBite
 ```
 
----
+### Phase Transition Logic
 
-## Integrating AI with GAS (Gameplay Ability System)
+Phase transitions happen when the Dragon's health crosses a threshold. You handle this in the Dragon's Pawn Blueprint, not in the Behavior Tree. The tree just reads the `CurrentPhase` value and reacts.
 
-### Why GAS + AI?
+In the Dragon Pawn's damage handling:
 
-In Module 6, you built the Gameplay Ability System for abilities, attributes, and effects. AI characters need to use the exact same system. An enemy casting Fireball should go through the same GAS pipeline as a player casting Fireball. This keeps everything consistent: damage calculations, cooldowns, resource costs, and gameplay effects all work the same way.
+1. Calculate `HealthPercent = CurrentHP / MaxHP`
+2. Update the Blackboard `HealthPercent` key
+3. Check thresholds:
+   - If `HealthPercent <= 0.6` and `CurrentPhase == 1`: Set `CurrentPhase = 2`, play roar animation, increase movement speed by 30%, trigger screen shake
+   - If `HealthPercent <= 0.3` and `CurrentPhase == 2`: Set `CurrentPhase = 3`, trigger takeoff sequence, change music track
 
-### How AI Activates Abilities
+The Behavior Tree automatically reacts because its decorators check `CurrentPhase`. When the phase changes, the tree's priority system naturally shifts to the correct branch on the next tick.
 
-1. Give AI Pawns an **Ability System Component** (same as player characters)
-2. Grant abilities to the AI during initialization (e.g., BasicAttack, Fireball, HealSelf)
-3. In your custom Behavior Tree task `BTTask_UseAbility`:
-   - Get a reference to the Pawn's Ability System Component
-   - Call **Try Activate Ability by Class** or **Try Activate Ability by Tag**
-   - Return **In Progress** while the ability is executing
-   - When the ability ends (listen for the OnAbilityEnded delegate), return **Succeeded** or **Failed**
+### Boss Arena Setup
 
-### AI Ability Selection
+The Dragon Boss fight happens in a specific arena. When the player enters:
 
-Not every ability should be used in every situation. Create a custom task or service that evaluates which ability to use:
+1. A trigger volume activates the Dragon (sets `IsInCombat` and `TargetActor`)
+2. Arena doors close (blocking retreat, classic boss room design)
+3. A cinematic plays (Dragon wakes up, stretches wings, roars)
+4. After the cinematic, combat begins with Phase 1
 
-- Check resource costs (does the AI have enough mana?)
-- Check cooldowns (is the ability ready?)
-- Check range (is the target within ability range?)
-- Check tactical value (a heal is more valuable when HP is low; an AoE is better against groups)
+When the player defeats the Dragon:
 
-Store the chosen ability in a Blackboard key, then have the `BTTask_UseAbility` task read from that key.
+1. Stop the Behavior Tree
+2. Play death cinematic (Dragon crashes, treasure hoard is revealed)
+3. Open arena doors
+4. Spawn loot
 
-### DnD-Specific Integration
+This trigger-based activation means the Dragon does not need patrol or investigation behaviors. It goes straight from idle (sleeping) to Phase 1 combat.
 
-For our game, AI ability usage maps to the DnD action economy:
-- **Action**: Main ability (attack, cast spell)
-- **Bonus Action**: Secondary ability (offhand attack, quick spell)
-- **Reaction**: Triggered ability (opportunity attack, counterspell)
-- **Movement**: NavMesh-based movement equal to the character's speed stat
+### The Breath Attack in Detail
 
-The Behavior Tree can model a full turn: use movement, then action, then bonus action, then end turn.
+The breath attack is the Dragon's signature ability. Here is how to build it:
 
----
+1. **Positioning**: EQS finds the ideal spot (800-1200 units from player, clear line of sight)
+2. **Wind-up**: Dragon rears back, particles gather at mouth (1.5 second tell, so players can dodge)
+3. **Execution**: Cone-shaped damage zone extends from the Dragon's mouth. Use a collision box that sweeps forward over 2 seconds.
+4. **Damage**: Area-of-effect, deals fire damage per tick (every 0.3 seconds) to anyone in the cone. Burns the ground for 5 seconds (lingering damage zone).
+5. **Recovery**: Dragon pauses for 1 second after breathing (punish window for the player)
 
-## Building Party Member AI
-
-### The Challenge
-
-Party members are the hardest AI to get right. They need to be smart enough to help but not so autonomous that the player feels irrelevant. Think of them like good supporting actors: they enhance the scene without stealing it.
-
-### Party AI Architecture
-
-Create a dedicated AI Controller: `BP_PartyMemberAIController`. This controller reads a **Behavior Preset** from the Blackboard, which the player can change at any time through the UI.
-
-### Behavior Presets
-
-**Aggressive:**
-- Prioritize attacking the nearest enemy
-- Use offensive abilities first
-- Move toward enemies proactively
-- Only retreat at very low health (below 15%)
-
-**Defensive:**
-- Stay near the player
-- Prioritize defensive abilities (shields, buffs)
-- Only attack enemies that are attacking the party
-- Retreat earlier (below 30% health)
-
-**Support:**
-- Monitor party health constantly
-- Prioritize healing the most wounded ally
-- Use buff abilities on allies before combat
-- Stay at maximum range from enemies
-- Avoid direct combat unless no other option
-
-**Follow:**
-- Stay within a set distance of the player
-- Do not engage in combat unless attacked
-- Useful for stealth sections or when the player wants full control
-
-### Following the Player
-
-Outside of combat, party members need to follow the player without looking robotic. Here is how:
-
-1. **Formation System**: Define offset positions relative to the player (behind-left, behind-right, directly behind). Each party member gets a formation slot.
-2. **Dynamic Following**: Do not follow the player's exact path. Instead, periodically calculate the formation position and move toward it. Add slight randomization so movement looks natural.
-3. **Catch-Up Speed**: If the party member falls too far behind, increase their movement speed temporarily. If they are very far away, teleport them to the player (with a brief visual effect to mask the teleport).
-4. **Obstacle Avoidance**: The NavMesh handles this, but add extra logic to avoid bunching up on narrow paths. Stagger movement so party members do not collide.
-
-### Party AI in Combat
-
-During turn-based combat, party AI follows the turn order:
-
-1. When it is a party member's turn, the Behavior Tree activates the combat branch
-2. The AI evaluates the battlefield using EQS and Blackboard data
-3. Based on the behavior preset, it selects a target and an ability
-4. It executes the ability through GAS
-5. It ends its turn and notifies the Turn Manager
-
-### Player Override
-
-Give the player the option to:
-- **Issue direct commands**: "Move here," "Attack this target," "Use this ability"
-- **Switch to manual control**: Temporarily possess the party member
-- **Change presets mid-combat**: Switch a character from Aggressive to Defensive on the fly
-
-Commands override the Behavior Tree temporarily. Store them as high-priority Blackboard values that the tree checks before its normal decision-making.
+The wind-up telegraph is critical for fair gameplay. Players need time to see the breath coming and dodge. Without the tell, the breath attack feels unfair. With it, dodging the breath and punishing during recovery feels skillful and rewarding.
 
 ---
 
-## Debugging AI in UE5
+## Part 9: Navigation and Pathfinding
+
+### NavMesh Basics
+
+All AI movement in UE5 relies on the Navigation Mesh (NavMesh). The NavMesh is an invisible layer painted over your level geometry that tells AI characters where they can and cannot walk. Without a NavMesh, the Move To task has no paths to follow.
+
+To add a NavMesh:
+
+1. Place a **NavMesh Bounds Volume** in your level
+2. Scale it to cover the entire playable area
+3. Press **P** to visualize the NavMesh (green = walkable, red/absent = blocked)
+
+The NavMesh automatically updates when you move or add geometry. Doors, walls, ramps, and stairs are all factored in.
+
+### NavMesh for Tabletop Quest
+
+For your game, you need NavMesh in two contexts:
+
+1. **Overworld exploration**: Large, open NavMesh covering terrain, towns, and paths
+2. **Dungeon interiors**: Tight NavMesh covering corridors, rooms, and doorways
+
+Key settings to configure:
+
+| Setting | Value | Why |
+|---------|-------|-----|
+| Agent Radius | 40 | Standard humanoid (Goblins, Skeletons). Slightly smaller than character capsule so AI does not get stuck on corners. |
+| Agent Height | 180 | Standing height |
+| Cell Size | 10 | Finer detail for dungeon corridors (default 19 is too coarse for narrow passages) |
+| Cell Height | 5 | Vertical precision for stairs and ramps |
+| Max Slope | 45 | Prevent AI from walking up cliff faces |
+
+For the Dragon Boss, you need a separate **Nav Agent** with a larger radius (120) and height (300). Add this in Project Settings > Navigation System > Supported Agents. The Dragon's NavMesh will exclude tight corridors, which is correct since the Dragon should not be pathfinding through hallways.
+
+### Dynamic NavMesh Obstacles
+
+Some objects in Tabletop Quest block pathfinding dynamically:
+
+- Doors that open and close
+- Destructible walls
+- Player-placed barricades (if you add that mechanic)
+- A boulder trap that rolls and blocks a corridor
+
+Use **Nav Modifier Volumes** or the **Dynamic Obstacle** property on static meshes to handle these. When a door opens, its nav obstacle is removed, and the NavMesh updates to include the new path.
+
+### Crowd Avoidance (RVO)
+
+When multiple enemies chase the player simultaneously (e.g., a group of Goblins), they need to avoid bumping into each other. UE5 has an **RVO Avoidance** system built into the Character Movement Component:
+
+1. On each enemy's Character Movement Component, enable **Use RVO Avoidance**
+2. Set **Avoidance Weight** (0.5 for standard enemies, 1.0 for the Dragon so smaller enemies dodge around it)
+3. Set **Avoidance Group** and **Groups to Avoid** (enemies avoid each other but not the player)
+
+Without avoidance, a group of 5 Goblins trying to reach the player will stack on top of each other, fighting for the same position. With avoidance, they spread out and approach from slightly different angles. Much more natural and visually interesting.
+
+### Nav Links for Special Movement
+
+Some pathfinding scenarios need special handling:
+
+- **Jumping across a gap**: Place a Nav Link Proxy between two platforms. AI will use the link to cross, playing a jump animation.
+- **Dropping off a ledge**: One-way Nav Links let AI drop down but not climb back up.
+- **Ladders**: Custom Nav Links with a climb animation.
+
+For the Tabletop Quest dungeon, you will want jump links across broken bridges and drop links for ledges. These make dungeon traversal feel natural for AI characters while keeping the navigation system intact.
+
+---
+
+## Part 10: Python Automation for AI
+
+### Why Automate AI Setup?
+
+Building AI for Tabletop Quest involves a lot of repetitive setup. Each enemy type needs a Pawn Blueprint, an AI Controller assignment, a Blackboard (or extension of the base one), a Behavior Tree, Perception settings, EQS Queries, and custom tasks. For 20+ enemy types (the game design doc calls for this), that is hundreds of assets to configure.
+
+UE5's Python API can automate the repetitive parts. And Claude can write these automation scripts for you.
+
+### UE5 Python Scripting Setup
+
+UE5 has a built-in Python editor accessible via **Window > Developer Tools > Output Log**, then switching the console dropdown from "Cmd" to "Python." You can also create Python scripts in your project's `/Content/Python/` folder and run them from the editor.
+
+To enable Python scripting:
+
+1. Go to **Edit > Plugins**
+2. Enable **Python Editor Script Plugin** (under Scripting)
+3. Restart the editor
+
+### Batch-Creating Enemy Assets
+
+Here is a Python script that creates the boilerplate folder structure for a new enemy type:
+
+```python
+import unreal
+import os
+
+def setup_enemy_type(enemy_name, sight_radius=1500, hearing_range=800, has_patrol=True):
+    """
+    Creates the folder structure and base assets for a new enemy type.
+    """
+    asset_tools = unreal.AssetToolsHelpers.get_asset_tools()
+    base_path = f"/Game/Enemies/{enemy_name}"
+
+    # Create folder structure
+    unreal.EditorAssetLibrary.make_directory(base_path)
+    unreal.EditorAssetLibrary.make_directory(f"{base_path}/AI")
+    unreal.EditorAssetLibrary.make_directory(f"{base_path}/Animations")
+    unreal.EditorAssetLibrary.make_directory(f"{base_path}/VFX")
+
+    # Log the configuration for manual setup
+    unreal.log(f"Created enemy structure for: {enemy_name}")
+    unreal.log(f"  Sight Radius: {sight_radius}")
+    unreal.log(f"  Hearing Range: {hearing_range}")
+    unreal.log(f"  Has Patrol: {has_patrol}")
+    unreal.log(f"  TODO: Create BT_{enemy_name} in {base_path}/AI/")
+    unreal.log(f"  TODO: Create BP_{enemy_name} Pawn in {base_path}/")
+    unreal.log(f"  TODO: Assign AI Controller and Behavior Tree")
+
+# Create all Act 1 enemies in one batch
+enemies = [
+    {"name": "GoblinScout",    "sight": 1500, "hearing": 800,  "patrol": True},
+    {"name": "GoblinArcher",   "sight": 2000, "hearing": 800,  "patrol": True},
+    {"name": "GoblinShaman",   "sight": 1200, "hearing": 1000, "patrol": False},
+    {"name": "GoblinBrute",    "sight": 1200, "hearing": 600,  "patrol": True},
+    {"name": "SkeletonWarrior","sight": 1200, "hearing": 600,  "patrol": False},
+    {"name": "SkeletonArcher", "sight": 2000, "hearing": 600,  "patrol": False},
+    {"name": "DungeonRat",     "sight": 800,  "hearing": 1500, "patrol": True},
+    {"name": "CaveBat",        "sight": 400,  "hearing": 2000, "patrol": True},
+]
+
+for enemy in enemies:
+    setup_enemy_type(enemy["name"], enemy["sight"], enemy["hearing"], enemy["patrol"])
+
+unreal.log(f"Batch created {len(enemies)} enemy type structures.")
+```
+
+### Generating Patrol Paths from Data
+
+If you define patrol routes in a JSON file, a Python script can read that data and create placement markers:
+
+```python
+import unreal
+import json
+
+def create_patrol_data(json_path):
+    """
+    Reads patrol path data from a JSON file and logs placement instructions.
+    Useful for level design pipeline.
+    """
+    with open(json_path, 'r') as f:
+        data = json.load(f)
+
+    for path_data in data["patrol_paths"]:
+        name = path_data["name"]
+        points = path_data["points"]
+        unreal.log(f"Patrol path '{name}': {len(points)} points")
+        for i, pt in enumerate(points):
+            unreal.log(f"  Point {i}: ({pt[0]}, {pt[1]}, {pt[2]})")
+```
+
+The JSON data file:
+
+```json
+{
+    "patrol_paths": [
+        {
+            "name": "ForestPath_Goblin01",
+            "points": [
+                [1200, 3400, 0],
+                [1800, 3200, 0],
+                [2200, 3600, 0],
+                [1600, 3800, 0]
+            ]
+        },
+        {
+            "name": "DungeonCorridor_Skeleton01",
+            "points": [
+                [500, 100, -200],
+                [500, 800, -200]
+            ]
+        }
+    ]
+}
+```
+
+### Claude as Your AI Design Assistant
+
+Here is where the "Claude writes 80% of the code" philosophy really shines. When you need a new enemy type, describe the behavior in plain English:
+
+> "I need a Goblin Shaman. It stays behind melee Goblins, heals them when they drop below 50% HP, casts a poison bolt at the player every 8 seconds. If any ally is within 500 units, it buffs their damage. If no allies are alive, it panics and runs."
+
+Claude can generate:
+- The Behavior Tree structure (which you recreate in the UE5 editor)
+- The custom task pseudo-code (which you implement in Blueprints)
+- The EQS queries (positioning logic for staying behind allies)
+- The Blackboard keys needed
+- The perception settings
+- A Python script to batch-create the assets
+
+You translate Claude's output into UE5 assets. This workflow lets you prototype enemy behavior 5x faster than designing from scratch.
+
+---
+
+## Part 11: Debugging AI
 
 ### The AI Debugging Tools
 
-UE5 has excellent AI debugging tools. Press the apostrophe key (') during Play-In-Editor to cycle through AI debug views:
+UE5 has excellent AI debugging tools. Open them during Play-In-Editor (PIE):
 
-- **Behavior Tree view**: Shows the active tree with highlighted nodes, which branch is running, which decorators passed or failed
-- **Blackboard view**: Shows all current Blackboard values in real-time
-- **EQS view**: Shows the query results as colored spheres in the world (green = high score, red = low score)
-- **Perception view**: Shows sight cones, heard sounds, and perceived actors
-- **NavMesh view**: Shows the navigation mesh the AI uses for pathfinding
+**Gameplay Debugger** (press apostrophe key during PIE):
+- Shows the currently running Behavior Tree with active nodes highlighted
+- Displays Blackboard values in real-time
+- Shows the NavMesh under the selected AI
+- Shows Perception stimuli (green = seen, yellow = heard)
+- Shows EQS query results (colored dots showing scored positions)
+- Cycle between AI characters with the number keys
 
-### Logging
+**Visual Logger** (Window > Developer Tools > Visual Logger):
+- Records AI behavior over time
+- Replay any moment to see what the AI was thinking
+- Essential for debugging "why did the Goblin do that?" moments
+- Can record custom data from your AI tasks
 
-Add Print String nodes in your custom tasks to output debug information. Prefix all AI logs with the character's name so you can filter:
+### Common AI Bugs and Fixes
 
-```
-[Goblin_03] Entering combat, target: Player1, distance: 450
-[Goblin_03] Selected ability: BasicAttack
-[Goblin_03] Ability succeeded, ending turn
-```
+**Bug: Enemy stands still and does nothing**
+- Check: Is the AI Controller assigned on the Pawn? (AI Controller Class in the Pawn's defaults)
+- Check: Is Run Behavior Tree called in the Controller's BeginPlay?
+- Check: Is there a NavMesh covering the enemy's location? (Press P to visualize)
+- Check: Does the Behavior Tree have at least one branch with passing decorators?
+- Check: Is the Blackboard initialized before the tree runs?
 
-### Common Issues
+**Bug: Enemy jitters or vibrates in place**
+- Check: Is the Move To acceptable radius too small? The enemy reaches the radius, the task succeeds, the tree restarts, and it tries to move again. Set acceptable radius to at least 50.
+- Check: Are two Behavior Tree branches fighting for control? One says "move here," the other says "move there," and they alternate every tick.
+- Check: Is RVO avoidance pushing the enemy away from its target continuously?
 
-- **AI not moving**: Check that the NavMesh covers the area. Rebuild navigation if needed.
-- **AI stuck in a loop**: A decorator might be flickering between true and false. Add a cooldown or hysteresis (require the condition to stay changed for a minimum time before switching).
-- **AI ignoring targets**: Check the AI Perception configuration. Make sure the target's Affiliation (friendly, neutral, hostile) matches what the perception is configured to detect.
-- **Abilities not firing**: Make sure the AI's Ability System Component has the ability granted AND that the AI meets all activation requirements (resource costs, cooldowns, tags).
+**Bug: Enemy does not detect the player**
+- Check: Does the player character have an **AI Perception Stimuli Source** component?
+- Check: Is Auto Register as Source enabled on that component?
+- Check: Are the sight/hearing configs added to the AI Perception Component?
+- Check: Is the affiliation system set up? (enemies might think the player is friendly)
+
+**Bug: Enemy walks through walls**
+- Check: Is there a NavMesh in this area? Press P to see.
+- Check: Are the walls set as navigation obstacles?
+- Check: Is the NavMesh Bounds Volume large enough to cover this area?
+
+**Bug: EQS query returns no results**
+- Check: Visualize the query in the Gameplay Debugger. If no dots appear, the generator is misconfigured.
+- Check: Are your filter tests too strict? Temporarily remove filters one at a time to find which one eliminates all points.
+- Check: Is the generator radius large enough to produce points within the NavMesh?
+
+**Bug: Multiple enemies overlap when chasing the player**
+- Check: Enable RVO Avoidance on all enemies
+- Check: Set different avoidance groups for different enemy sizes
+- Check: The acceptable radius on Move To should vary (not all enemies trying to reach the exact same point)
 
 ---
 
-## Performance Considerations
+## Part 12: Performance and Scalability
 
-### Tick Rates
+### AI Performance Budget
 
-Not every AI needs to evaluate its Behavior Tree every frame. For distant enemies, reduce the tick rate:
+AI is one of the most CPU-intensive systems in a game. For Tabletop Quest, keep these rules:
 
-- Nearby AI: Every frame or every 0.1 seconds
-- Mid-distance AI: Every 0.3 to 0.5 seconds
-- Far-away AI: Every 1 to 2 seconds
-- Off-screen AI: Pause entirely or run a simplified simulation
+**Behavior Tree tick interval**: Do not tick every frame. Set the tick interval to 0.2-0.5 seconds for standard enemies. The player will not notice the difference between a Goblin that makes decisions 60 times per second vs. 5 times per second. Boss enemies can tick faster (0.1s) for more responsive behavior.
 
-### LOD for AI
+**EQS query frequency**: EQS queries are expensive. Use Cooldown decorators to prevent queries from running every tick. A flee query every 2 seconds is fine. A breath position query every 3 seconds is fine.
 
-Just like visual Level of Detail, you can create AI Level of Detail:
-- **Full AI**: Complete Behavior Tree with all branches and EQS queries
-- **Simplified AI**: Reduced tree with only basic behaviors
-- **Dormant AI**: No tree running; just holds its position until the player gets closer
+**Perception max age**: Short max age (3-5 seconds) means the AI forgets stimuli quickly, reducing memory usage.
 
-### EQS Optimization
+**Stagger enemy activation**: If you have 20 enemies in an area, do not activate all their AI simultaneously. Use trigger volumes to activate enemies only when the player is nearby. Enemies far from the player should be dormant (no ticking Behavior Tree, no Perception processing).
 
-EQS queries can be expensive. Limit them:
-- Reduce the number of test points (a 5x5 grid instead of 10x10)
-- Increase the interval between queries
-- Cache results when the situation has not changed significantly
+**AI LOD (Level of Detail)**: Just like rendering LOD, you can create AI LOD. Enemies far from the player run a simplified Behavior Tree (just idle animation, no perception). When the player gets closer, swap to the full tree. This is especially important for the open world areas of Tabletop Quest.
+
+### Tabletop Quest AI Budget
+
+| Scenario | Active AI Count | Budget |
+|----------|----------------|--------|
+| Forest patrol encounter | 4-6 Goblins | 1-2ms per frame |
+| Dungeon corridor | 2-3 Skeletons | 0.5-1ms per frame |
+| Dragon Boss fight | 1 Dragon + 2 Skeleton minions | 1-2ms per frame |
+| Town NPCs (no combat) | 10-15 idle NPCs | 0.5ms per frame (simplified trees) |
+
+Total AI budget: aim for under 3ms per frame. That leaves plenty of headroom for rendering, physics, and the local LLM when you add the AI Dungeon Master in later phases.
+
+---
+
+## Part 13: Connecting AI to the Dual Combat System
+
+### How AI Differs Between Turn-Based and Real-Time
+
+Tabletop Quest's dual combat system means your AI needs to work in both modes. The same Goblin Scout needs to fight differently depending on whether the player is in turn-based or real-time combat.
+
+**Turn-Based Mode**:
+- AI takes a full turn: Move + Action + Bonus Action
+- Decisions are deliberate (the tree evaluates once per turn, not continuously)
+- Movement is on the hex grid
+- Abilities use action economy
+
+**Real-Time Mode**:
+- AI acts continuously (the tree ticks at regular intervals)
+- Movement is free-form (no grid)
+- Abilities use cooldowns instead of action economy
+
+### Implementation Approach
+
+Create a Blackboard key: `CombatMode` (Enum: TurnBased, RealTime)
+
+At the top level of each combat Behavior Tree, add a Selector that branches based on `CombatMode`:
+
+```
+Sequence [COMBAT]
+  Decorator: Blackboard "IsInCombat" == true
+  Selector
+    |-- Sequence [TURN-BASED COMBAT]
+    |     Decorator: Blackboard "CombatMode" == TurnBased
+    |     Task: BTTask_TurnBasedTurn (move on grid + use ability)
+    |
+    |-- Sequence [REAL-TIME COMBAT]
+          Decorator: Blackboard "CombatMode" == RealTime
+          (... existing real-time combat behavior ...)
+```
+
+The `BTTask_TurnBasedTurn` task handles a complete turn:
+
+1. Evaluate the best move position (using EQS on the hex grid)
+2. Move to that hex
+3. Evaluate the best action (attack, ability, or pass)
+4. Execute the action
+5. Signal turn complete
+
+This way, the same enemy character seamlessly switches between combat modes, just like the player does.
 
 ---
 
 ## Summary
 
-AI in UE5 is built on a clean, modular architecture:
+You now have the complete AI toolkit for Tabletop Quest:
 
-| Component | Role | Analogy |
-|-----------|------|---------|
-| AI Controller | The brain that drives the Pawn | A puppeteer controlling a puppet |
-| Behavior Tree | The decision-making flowchart | A choose-your-own-adventure book |
-| Blackboard | Shared memory for AI data | A whiteboard covered in sticky notes |
-| Task Nodes | Actions the AI performs | Verbs in a sentence |
-| Decorator Nodes | Conditions that gate actions | "If" statements |
-| Service Nodes | Background data updaters | A news ticker updating continuously |
-| Composite Nodes | Flow control (Selector/Sequence) | "OR" and "AND" logic |
-| EQS | Spatial decision-making | A bird's-eye view with a scoring rubric |
-| AI Perception | Sight, hearing, damage sensing | The AI's senses |
+| System | Purpose | Key Asset Type |
+|--------|---------|---------------|
+| AI Controller | Connects brain to body | Blueprint (AIController) |
+| Blackboard | AI memory (key-value store) | Blackboard Data Asset |
+| Behavior Tree | Decision-making logic | Behavior Tree Asset |
+| AI Perception | Sight, hearing, damage sensing | Component on AI Controller |
+| EQS | Spatial reasoning (where to go?) | Environment Query Asset |
+| NavMesh | Pathfinding (how to get there?) | NavMesh Bounds Volume |
+| Custom BT Tasks | Enemy-specific actions | Blueprint (BTTask_BlueprintBase) |
+| Custom Decorators | Enemy-specific conditions | Blueprint (BTDecorator_BlueprintBase) |
+| Services | Background monitoring | Blueprint (BTService_BlueprintBase) |
 
-For our DnD game, these systems combine to create enemies that patrol, detect, fight tactically, and retreat, plus party members that follow, support, and fight alongside the player based on customizable behavior presets. In the next module, we will build the UI that lets the player see and control all of this.
+You built three distinct enemies:
+- **Goblin Scout**: Patrol, alert allies, fight, flee. Social, cowardly, smart in groups.
+- **Skeleton Warrior**: Guard post, chase within territory, shield block, never flee. Solitary, relentless, predictable.
+- **Dragon Boss**: Three combat phases, breath attacks, minion summoning, aerial combat. Complex, cinematic, dangerous.
+
+Every enemy in Tabletop Quest will be built from these same building blocks. The difference between a mindless rat and a tactical dragon is not the system. It is the complexity of the Behavior Tree and the cleverness of the EQS queries. Start simple, add complexity, then go big. That is how you build an army.
