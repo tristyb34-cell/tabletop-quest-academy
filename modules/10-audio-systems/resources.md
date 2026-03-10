@@ -1,84 +1,90 @@
 # Module 10: Resources - Sound and Music
 
+## Official UE5 Documentation
+
+### Audio Core
+- **Audio System Overview**: https://dev.epicgames.com/documentation/en-us/unreal-engine/audio-in-unreal-engine
+- **Sound Cues**: https://dev.epicgames.com/documentation/en-us/unreal-engine/sound-cue-editor-in-unreal-engine
+- **Sound Attenuation**: https://dev.epicgames.com/documentation/en-us/unreal-engine/sound-attenuation-in-unreal-engine
+- **Sound Classes**: https://dev.epicgames.com/documentation/en-us/unreal-engine/sound-classes-in-unreal-engine
+- **Sound Concurrency**: https://dev.epicgames.com/documentation/en-us/unreal-engine/sound-concurrency-in-unreal-engine
+
+### Spatial Audio
+- **Audio Volumes**: https://dev.epicgames.com/documentation/en-us/unreal-engine/audio-volumes-in-unreal-engine
+- **Reverb Effects**: https://dev.epicgames.com/documentation/en-us/unreal-engine/reverb-effects-in-unreal-engine
+- **Spatialization**: https://dev.epicgames.com/documentation/en-us/unreal-engine/audio-spatialization-in-unreal-engine
+
+### MetaSounds
+- **MetaSounds Overview**: https://dev.epicgames.com/documentation/en-us/unreal-engine/metasounds-in-unreal-engine
+- **MetaSounds Quick Start**: https://dev.epicgames.com/documentation/en-us/unreal-engine/metasounds-quickstart-in-unreal-engine
+- **MetaSounds Reference Guide**: https://dev.epicgames.com/documentation/en-us/unreal-engine/metasounds-reference-guide-in-unreal-engine
+
+### Audio in Blueprints
+- **Playing Audio in Blueprints**: https://dev.epicgames.com/documentation/en-us/unreal-engine/playing-sounds-in-unreal-engine
+- **Audio Components**: https://dev.epicgames.com/documentation/en-us/unreal-engine/audio-component-in-unreal-engine
+
 ## Free Sound Libraries
 
-### Freesound.org
-**https://freesound.org/**
-The largest community-driven sound library on the web. Hundreds of thousands of Creative Commons sounds. Search for "sword clash," "dungeon ambience," "dripping water," "fantasy music," "campfire," or "footsteps" and you will find extensive options. Most sounds are CC0 (public domain) or CC BY (free with attribution).
+### General Sound Effects
+- **Freesound.org**: Massive community library of Creative Commons sound effects. Search for "sword impact," "footstep stone," "fire crackle," etc.: https://freesound.org
+- **Sonniss GDC Audio Bundles**: Sonniss releases free bundles of high-quality game audio annually. Check for the latest: https://sonniss.com/gameaudiogdc
+- **Zapsplat**: Free SFX with attribution, premium for no attribution: https://www.zapsplat.com
+- **Mixkit**: Free sound effects, no attribution required: https://mixkit.co/free-sound-effects/
 
-### Sonniss GDC Audio Bundles
-**https://sonniss.com/gameaudiogdc**
-Every year at the Game Developers Conference, Sonniss releases a massive free bundle of professional game audio. Past bundles total 30+ gigabytes of royalty-free sounds: combat impacts, creature vocals, environmental ambience, foley, and more. These are production-quality sounds used in shipping games. Check if the current year's bundle is available.
+### Music
+- **Kevin MacLeod (Incompetech)**: Royalty-free music in many genres including fantasy and orchestral: https://incompetech.com
+- **Free Music Archive**: Creative Commons music, search for "medieval," "fantasy," "orchestral": https://freemusicarchive.org
+- **Musopen**: Royalty-free classical music recordings: https://musopen.org
 
-### Kevin MacLeod (Incompetech)
-**https://incompetech.com/**
-Hundreds of free royalty-free music tracks in every genre. Search for "fantasy," "medieval," "battle," and "ambient" for tracks suitable for exploration, combat, and town music. All tracks are free with attribution (CC BY).
-
-### Mixkit
-**https://mixkit.co/free-sound-effects/**
-Curated library of free sound effects, with clean categories and high-quality recordings. Good for UI sounds (button clicks, menu transitions) and short audio stingers (victory fanfares, level-up sounds).
-
----
-
-## Unreal Audio Documentation
-
-### Audio System Overview
-**https://docs.unrealengine.com/5.0/en-US/audio-overview-in-unreal-engine/**
-The primary reference for audio in Unreal. Covers Sound Waves, Sound Cues, attenuation, spatialisation, Audio Volumes, and the audio pipeline.
-
-### Sound Cue Reference
-**https://docs.unrealengine.com/5.0/en-US/sound-cue-reference-in-unreal-engine/**
-Detailed reference for every node available in the Sound Cue editor: Random, Modulator, Mixer, Attenuation Override, Concatenator, Looping, and more. Useful when building complex Sound Cues.
-
-### Attenuation Settings
-**https://docs.unrealengine.com/5.0/en-US/sound-attenuation-in-unreal-engine/**
-Documentation for configuring how sounds behave in 3D space: distance falloff curves, spatialisation, occlusion (sounds muffled by walls), and air absorption (high frequencies fade faster over distance).
-
----
-
-## MetaSounds
-
-### MetaSounds Overview
-**https://docs.unrealengine.com/5.0/en-US/metasounds-in-unreal-engine/**
-Introduction to UE5's procedural audio system. Covers the node graph, basic synthesis, audio parameter control, and how MetaSounds differs from Sound Cues. Start here if you want to explore dynamic audio generation.
-
-### MetaSounds Reference Guide
-**https://docs.unrealengine.com/5.0/en-US/metasounds-reference-guide-in-unreal-engine/**
-Full reference for MetaSounds nodes: oscillators, filters, envelopes, delays, and more. For when you are ready to build complex procedural sounds like dynamic wind or responsive magic effects.
-
----
-
-## Music for Games
-
-### Music Licensing Basics
-When using music in your game, understand the licence. **CC0** and **public domain** mean no restrictions. **CC BY** means you must credit the creator. **Royalty-free** means you pay once (or get it free) and can use it without ongoing fees, but check the specific terms for commercial use.
-
-### Dynamic Music Techniques
-Search YouTube for "adaptive game music" or "dynamic music system UE5" for tutorials on building music that responds to gameplay. Key concepts: horizontal re-sequencing (switching between music sections), vertical re-mixing (adding/removing instrument layers), and stinger-based systems (short musical phrases triggered by events).
-
----
+### Ambient Sounds
+- **BBC Sound Effects**: Massive library of field recordings (nature, cities, rooms). Many are Creative Commons: https://sound-effects.bbcrewind.co.uk
+- **A Soft Murmur**: Not a download library, but great for designing ambient mixes and understanding which elements work together: https://asoftmurmur.com
 
 ## Video Tutorials
 
-### Unreal Engine Audio Tutorials (YouTube)
-**https://www.youtube.com/@UnrealEngine**
-Search for "audio" and "MetaSounds" for official tutorials. The Inside Unreal series has covered audio design with demonstrations from Epic's audio team.
+### UE5 Audio Fundamentals
+- **Unreal Engine - Audio System Overview**: Official introduction to Sound Waves, Sound Cues, and Attenuation.
+- **Ryan Laley - UE5 Audio Tutorial Series**: Practical walkthrough of spatial audio, reverb, and ambient sound design.
 
-### Game Audio Tutorials (YouTube)
-Search for "UE5 sound cue tutorial" and "UE5 ambient sound setup" for community-made walkthroughs. Channels like **Matt Aspland** and **Ryan Laley** have beginner-friendly audio tutorials specifically for Unreal Engine.
+### MetaSounds
+- **Unreal Engine - MetaSounds Deep Dive**: Official walkthrough of MetaSounds node types, procedural audio, and parameter control.
+- **Dan Reynolds - MetaSounds Tutorial**: Practical MetaSounds for game audio, including wind and fire synthesis.
 
----
+### Adaptive Music
+- **GDC Talk - Adaptive Music in Games**: Industry perspectives on horizontal re-sequencing and vertical layering approaches.
+- **Unreal Engine - Interactive Music System**: Official approach to building adaptive music with Blueprints and Sound Cues.
 
-## Community
+### Combat Audio
+- **Marshall McGee - Designing Game Combat Audio**: Game audio designer's approach to layered weapon sounds, impact feedback, and ability effects.
 
-### r/GameAudio (Reddit)
-**https://www.reddit.com/r/GameAudio/**
-Community of game audio professionals and hobbyists. Good for feedback on your sound design, finding free resources, and learning audio design principles.
+## Sound Design References
 
-### Unreal Engine Audio Forum
-**https://forums.unrealengine.com/c/development-discussion/audio**
-Discussions about audio implementation in Unreal. Search for "Sound Cue setup," "ambient sound," and "music system" for solutions to common problems.
+### Games with Excellent Audio
+- **Dark Souls / Elden Ring**: Masterclass in using audio for gameplay information. Enemy footsteps, environmental cues, and minimal but impactful music.
+- **Divinity: Original Sin 2**: Outstanding ambient soundscapes, tavern music, and adaptive combat music. Very relevant to Tabletop Quest.
+- **Baldur's Gate 3**: Modern DnD game audio. Study the combat sounds, dialogue audio, and environmental ambience.
+- **Skyrim**: Iconic exploration themes, biome-specific ambient audio, and the relationship between music and world.
+- **Hades**: Exceptional adaptive music system with vertical layering. Combat intensity drives the mix.
+- **Hellblade: Senua's Sacrifice**: Spatial audio showcase. Demonstrates what binaural audio can achieve for immersion.
 
-### A Sound Effect
-**https://www.asoundeffect.com/**
-Blog and resource hub for game audio. Features articles on sound design techniques, interviews with audio designers, and curated lists of sound libraries.
+### Books and Articles
+- **"A Game Designer's Guide to Audio"**: Practical introduction to game audio design principles.
+- **"Game Audio Programming" by Guy Somberg**: Technical deep dive into audio systems in games.
+
+## Tools
+
+### Audio Editing
+- **Audacity**: Free, open-source audio editor. Edit, trim, normalize, and export sound files: https://www.audacityteam.org
+- **REAPER**: Professional DAW (digital audio workstation) with a generous trial. Good for mixing and mastering game audio: https://www.reaper.fm
+
+### Sound Design
+- **sfxr / jsfxr**: Free tool for generating retro game sound effects. Useful for prototyping before replacing with real sounds: https://sfxr.me
+- **Vital**: Free synthesizer for creating procedural sounds (whooshes, impacts, magical effects): https://vital.audio
+
+### Music Composition
+- **MuseScore**: Free music notation software. Useful if you compose your own themes: https://musescore.org
+- **LMMS**: Free digital audio workstation for music production: https://lmms.io
+
+## UE5 Python Scripting for Audio
+- **Python Editor Script Plugin**: https://dev.epicgames.com/documentation/en-us/unreal-engine/scripting-the-unreal-editor-using-python
+- Use Python to batch-import audio files, organize them into folders, and generate audio Data Tables mapping surface types to footstep sounds or weapons to impact sounds

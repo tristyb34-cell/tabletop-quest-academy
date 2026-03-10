@@ -1,87 +1,85 @@
 # Module 09: Resources - The Open World
 
-## World Partition
+## Official UE5 Documentation
 
-### Official World Partition Documentation
-**https://docs.unrealengine.com/5.0/en-US/world-partition-in-unreal-engine/**
-The primary reference for World Partition. Covers how the grid system works, cell sizes, loading ranges, data layers, and the One File Per Actor (OFPA) system. Start here for understanding the architecture.
+### World Partition
+- **World Partition Overview**: https://dev.epicgames.com/documentation/en-us/unreal-engine/world-partition-in-unreal-engine
+- **World Partition Streaming**: https://dev.epicgames.com/documentation/en-us/unreal-engine/world-partition-streaming-in-unreal-engine
+- **Data Layers**: https://dev.epicgames.com/documentation/en-us/unreal-engine/world-partition-data-layers-in-unreal-engine
+- **HLOD**: https://dev.epicgames.com/documentation/en-us/unreal-engine/world-partition-hlod-in-unreal-engine
 
-### World Partition Quick Start
-**https://docs.unrealengine.com/5.0/en-US/world-partition---quick-start-guide-in-unreal-engine/**
-A hands-on guide that walks through enabling World Partition on a level, configuring cell sizes, and testing streaming behaviour. Good for getting started quickly.
+### Level Streaming
+- **Level Streaming Overview**: https://dev.epicgames.com/documentation/en-us/unreal-engine/level-streaming-in-unreal-engine
+- **Level Streaming Volumes**: https://dev.epicgames.com/documentation/en-us/unreal-engine/level-streaming-volumes-in-unreal-engine
 
----
+### Landscape
+- **Landscape Overview**: https://dev.epicgames.com/documentation/en-us/unreal-engine/landscape-outdoor-terrain-in-unreal-engine
+- **Landscape Materials**: https://dev.epicgames.com/documentation/en-us/unreal-engine/landscape-materials-in-unreal-engine
+- **Landscape Editing**: https://dev.epicgames.com/documentation/en-us/unreal-engine/editing-landscapes-in-unreal-engine
 
-## Landscape Tutorials
+### Foliage
+- **Foliage Mode**: https://dev.epicgames.com/documentation/en-us/unreal-engine/foliage-mode-in-unreal-engine
 
-### Landscape Tool Documentation
-**https://docs.unrealengine.com/5.0/en-US/landscape-outdoor-terrain-in-unreal-engine/**
-Full reference for the Landscape system: creation, sculpting, painting, materials, foliage, and grass types. Covers every tool and setting.
+### PCG (Procedural Content Generation)
+- **PCG Overview**: https://dev.epicgames.com/documentation/en-us/unreal-engine/procedural-content-generation-overview
+- **PCG Graph**: https://dev.epicgames.com/documentation/en-us/unreal-engine/pcg-graph-in-unreal-engine
 
-### Landscape Quick Start Guide
-**https://docs.unrealengine.com/5.0/en-US/landscape-quick-start-guide-in-unreal-engine/**
-Step-by-step tutorial for creating your first landscape, sculpting terrain, and painting materials. A great practical introduction.
+### Rendering and Optimization
+- **Nanite**: https://dev.epicgames.com/documentation/en-us/unreal-engine/nanite-virtualized-geometry-in-unreal-engine
+- **Lumen**: https://dev.epicgames.com/documentation/en-us/unreal-engine/lumen-global-illumination-and-reflections-in-unreal-engine
+- **Virtual Shadow Maps**: https://dev.epicgames.com/documentation/en-us/unreal-engine/virtual-shadow-maps-in-unreal-engine
+- **Performance Guidelines**: https://dev.epicgames.com/documentation/en-us/unreal-engine/performance-guidelines-for-unreal-engine
 
-### Unreal Sensei Landscape Tutorial (YouTube)
-**https://www.youtube.com/@UnrealSensei**
-Excellent landscape tutorials showing how to create beautiful terrain using Megascans materials and the Landscape tool. The "Create a Beautiful Landscape" video is particularly relevant for Tabletop Quest's open world.
+### Profiling
+- **Stat Commands Reference**: https://dev.epicgames.com/documentation/en-us/unreal-engine/stat-commands-in-unreal-engine
+- **Unreal Insights**: https://dev.epicgames.com/documentation/en-us/unreal-engine/unreal-insights-in-unreal-engine
 
----
+## Video Tutorials
 
-## Megascans and Materials
+### World Partition
+- **Unreal Engine - World Partition | Inside Unreal**: Official deep dive into World Partition setup, cell configuration, and Data Layers.
+- **BuildGamesWithJon - World Partition Tutorial**: Practical walkthrough from empty level to a working World Partition setup.
 
-### Quixel Bridge in UE5
-**https://docs.unrealengine.com/5.0/en-US/quixel-bridge-plugin-for-unreal-engine/**
-Documentation for accessing the Megascans library directly from within UE5. Browse thousands of free photorealistic materials (grass, rock, soil, snow) and 3D assets (trees, rocks, debris). All Megascans content is free for Unreal Engine projects.
+### Open World Design
+- **GDC Talk - Creating Worlds: Open World Level Design**: General principles for open world level design. Distance, landmarks, and pacing.
+- **Unreal Engine - Building Large Worlds in UE5**: Official presentation on open world techniques including streaming, HLOD, and PCG.
 
-### Landscape Material Setup Guide
-**https://docs.unrealengine.com/5.0/en-US/landscape-materials-in-unreal-engine/**
-How to create Layer Blend materials for landscapes, configure multiple layers, and paint different surfaces onto terrain. Essential for making your terrain look realistic with varied ground cover.
+### Landscape
+- **Unreal Sensei - UE5 Landscape Tutorial**: Complete landscape setup with multi-layer materials, sculpting, and foliage painting.
+- **PrismaticaDev - Landscape Material Setup**: Detailed material graph for blending terrain layers.
 
----
+### PCG
+- **Unreal Engine - PCG Framework Deep Dive**: Official walkthrough of the PCG graph editor with forest generation examples.
+- **Adrien Logut - PCG Forest Tutorial**: Practical PCG forest with exclusion zones, density variation, and undergrowth.
 
-## Foliage and Procedural Placement
+### Optimization
+- **Tech Art Aid - UE5 Profiling Guide**: How to read stat commands, identify bottlenecks, and optimize frame time.
+- **Unreal Engine - Nanite Deep Dive**: When to use Nanite, what it does well, and its current limitations.
 
-### Foliage Tool Documentation
-**https://docs.unrealengine.com/5.0/en-US/foliage-tool-in-unreal-engine/**
-Reference for painting foliage (trees, bushes, grass) onto landscapes. Covers density, scale variation, random rotation, slope constraints, and performance optimization.
+## Design References
 
-### Procedural Foliage Spawner
-**https://docs.unrealengine.com/5.0/en-US/procedural-foliage-tool-in-unreal-engine/**
-UE5's built-in tool for procedurally generating forests and vegetation. An alternative to Python scripts for large-scale foliage placement. Supports ecosystem simulation (trees block light, affecting undergrowth density).
+### Open World RPGs to Study
+- **Skyrim**: Study the landmark-based navigation system. Towers, mountains, and ruins are always visible, guiding the player naturally.
+- **Breath of the Wild**: Study the "see it, go there" design philosophy. Every point of interest is visible from a distance.
+- **The Witcher 3**: Study the density of points of interest and how they are distributed across the map. Notice the mix of combat, discovery, and narrative encounters.
+- **Divinity: Original Sin 2**: Study how a smaller world (compared to Skyrim) can still feel vast through density and verticality.
 
----
+### Tabletop/Miniature Aesthetics
+- **Demeo (VR)**: A VR tabletop RPG where the game world IS a miniature on a table. Directly relevant to Tabletop Quest's tabletop view.
+- **Wartales**: Top-down RPG with a hand-painted map aesthetic. Good reference for how the tabletop map could look.
+- **Inkle's Overland games**: Abstract but evocative map styles that communicate terrain type through color and shape.
 
-## Level Streaming
+## Free Asset Packs
 
-### Level Streaming Documentation
-**https://docs.unrealengine.com/5.0/en-US/level-streaming-in-unreal-engine/**
-How to create sub-levels, set up Level Streaming Volumes, and configure load/unload behaviour. Covers both volume-based and Blueprint-based streaming triggers.
+### Landscape and Environment
+- **Quixel Megascans** (free with UE5): Photorealistic rocks, trees, ground textures. Excellent for prototyping terrain: https://quixel.com/megascans
+- **Kenney Nature Kit**: Free low-poly trees, rocks, and terrain pieces: https://kenney.nl
+- **Open World Demo Collection**: Epic's free open world assets (available in the Marketplace Learning section)
 
----
+### Modular Buildings
+- **Medieval Market Pack**: Free or low-cost medieval building modules on the Marketplace
+- **Quaternius Medieval Town**: Free low-poly medieval buildings: https://quaternius.com
 
-## Free Assets for World Building
-
-### Quixel Megascans (Free for UE5)
-**https://quixel.com/megascans/**
-Thousands of photorealistic 3D scans: rocks, trees, ground surfaces, debris, vegetation. All free when used with Unreal Engine. This is your primary source for terrain materials and environmental props.
-
-### Unreal Marketplace Free Monthly Content
-**https://www.unrealengine.com/marketplace/en-US/free**
-Monthly free asset packs that often include environment sets, building kits, and foliage packs. Check regularly and grab anything useful for world building.
-
-### Kenney (Free Game Assets)
-**https://kenney.nl/assets**
-Free low-poly 3D assets including buildings, nature, and props. Good for prototyping town layouts before replacing with higher-quality assets.
-
----
-
-## Community
-
-### r/unrealengine (Reddit)
-**https://www.reddit.com/r/unrealengine/**
-Search for "World Partition performance," "landscape tutorial," and "open world UE5" for community discussions, performance tips, and architecture patterns.
-
-### Unreal Engine World Building Forum
-**https://forums.unrealengine.com/c/development-discussion/world-creation**
-Discussions about large-scale level design, terrain creation, and open world performance. Good for troubleshooting streaming issues and learning optimization techniques.
+## UE5 Python Scripting
+- **Python Editor Script Plugin**: https://dev.epicgames.com/documentation/en-us/unreal-engine/scripting-the-unreal-editor-using-python
+- Use Python to batch-place actors from JSON data files, automate Data Layer assignments, and configure streaming volumes programmatically
